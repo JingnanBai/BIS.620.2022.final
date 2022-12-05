@@ -1,0 +1,30 @@
+Package: BIS620.2022.final
+Type: Package
+Title: Yale BIS620-2022 final project
+Version: 0.1.0
+Author: Jingnan Bai
+Maintainer: Jingnan Bai <jingnan.bai@yale.edu>
+Description: this package contains basic data process and analysis functions, with a detailed example about using it for the readmission dataset exploration and analysis.
+License: LGPL (>= 3)
+Encoding: UTF-8
+Depends: 
+    R (>= 4.1.0)
+Imports: 
+  dplyr,
+  ggplot2,
+  tidyr,
+  scorecard, 
+  pROC,
+  randomForest,
+  VIM,
+  DMwR, 
+  gridExtra, 
+  sqldf,
+  stats,
+  grDevices
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+RoxygenNote: 7.2.1
+Config/testthat/edition: 3
