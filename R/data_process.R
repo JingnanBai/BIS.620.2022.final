@@ -114,7 +114,7 @@ missing_explore <-
         select(-all_of(dropcol))}
     if(length(droprow)){
       x <- x |>
-      drop_na(droprow)}
+      drop_na(all_of(droprow))}
     print(paste("auto_process done, with ", round((1-dim(x)[2]/oridim[2])*100, 3),
           "% columns deleted and ", round((length(dropcol)/oridim[2])*100, 3),
           "% rows dropped", sep = ""))
@@ -122,12 +122,11 @@ missing_explore <-
   if(is.fill){
     for(coln in rownames(tab[tab$missing_proportion < upper.pro &
                              tab$missing_proportion > lower.pro,])){
-      if(is.numeric(x[coln])){
-        if(fill_cre == 'median'){x[coln] <- replace_na(x[[coln]], median(x[coln]))}
-        else if(fill_cre == "avg"){x[coln] <- replace_na(x[[coln]], mean(x[coln]))}
-        else{stop("fill_cre_num should in (`median`, `avg`)")}
-      }
-      else{x[coln] <- replace_na(x[[coln]], fill_mark_fac)}
+      if(is.numeric(x[[coln]])){
+        if(fill_cre_num == 'median'){x[coln] <- replace_na(x[[coln]], median(x[[coln]]))}
+        else if(fill_cre_num == "avg"){x[coln] <- replace_na(x[[coln]], mean(x[[coln]]))}
+      } else {
+        x[coln] <- replace_na(x[[coln]], fill_mark_fac)}
     }
   }
   return(x)

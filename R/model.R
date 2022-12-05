@@ -13,9 +13,6 @@
 #' @export
 ycol_mapped01 <- function(data, ycol, positive){
   data[, ycol] <- data[[ycol]] |> as.character()
-  if((class(ycol) != "character")|(class(positive) != "character")){
-    stop("the input `ycol` and `positive` should be String/Character")
-  }
   tempidx <- data[[ycol]] == positive
   data[, ycol] <- 0
   data[tempidx, ycol] <- 1
@@ -108,7 +105,7 @@ build_LogisticRegression <- function(data, ycol,
                                      is.kfold = FALSE, cv_num = 10, seed = NA,
                                      is.smote = FALSE,
                                      thre = NA){
-  epoch_num <- cv_num
+  if(is.kfold){epoch_num <- cv_num} else {epoch_num <- 1}
   form <- as.formula(paste(ycol, " ~ ."))
   auc <- 0
   pre <- 0
@@ -117,7 +114,6 @@ build_LogisticRegression <- function(data, ycol,
   Fscore <- 0
   if(is.kfold){
     kfold <- build_kfold(cv_num, dim(data)[1], seed = seed)
-    if(cv_num < 1 | cv_num %% 1 != 0){stop("cv_num should be integer >= 1")}
     epoch_num <- cv_num}
   for(epoch in 1:epoch_num){
     if(is.kfold){
@@ -197,7 +193,7 @@ build_RandomForest <- function(data, ycol,
                                      is.kfold = FALSE, cv_num = 10, seed = NA,
                                      is.smote = FALSE,
                                      thre = NA){
-  epoch_num <- 1
+  if(is.kfold){epoch_num <- cv_num} else {epoch_num <- 1}
   form <- as.formula(paste(ycol, " ~ ."))
   auc <- 0
   pre <- 0
@@ -206,7 +202,6 @@ build_RandomForest <- function(data, ycol,
   Fscore <- 0
   if(is.kfold){
     kfold <- build_kfold(cv_num, dim(data)[1], seed = seed)
-    if(cv_num < 1 | cv_num %% 1 != 0){stop("cv_num should be integer >= 1")}
     epoch_num <- cv_num}
   for(epoch in 1:epoch_num){
     if(is.kfold){
@@ -222,7 +217,7 @@ build_RandomForest <- function(data, ycol,
     mod <- randomForest(form, data = train)
     pred_prob <- predict(mod, newdata = test, 'prob')[, 2]
     roc0 <- roc(as.ordered(test$readmitted), as.ordered(pred_prob),
-                direction = '<', quite = TRUE)
+                direction = '<', quiet = TRUE)
     if(is.na(thre)){
       temp <- data |> group_by(.data[[ycol]]) |>
         dplyr::summarise(n = n())
