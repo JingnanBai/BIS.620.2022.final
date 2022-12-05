@@ -11,7 +11,7 @@ encode_ICD9(x, data_icd, maplist = c("diag_1", "diag_2", "diag_3"))
 
 \item{data_icd}{the mapping dataset with ICD-9 codes and its primary category,
 should have columns (`description`, `code_start`, `code_end`). refer to the sample
-data `ICD9_map` for more information about data format}
+data `icd9_map` for more information about data format}
 
 \item{maplist}{the vector contains column names which need to be mapped}
 }
@@ -24,7 +24,7 @@ to its primary category
 }
 \examples{
 data(diabetic_data)
-data(ICD9_map)
-diabetic_data <- encode_ICD9(x = diabetic_data[1:100, ], data_icd = ICD9_map,
+data(icd9_map)
+diabetic_data <- encode_ICD9(x = diabetic_data[1:100, ], data_icd = icd9_map,
                              maplist = c('diag_1', 'diag_2', 'diag_3'))
 }

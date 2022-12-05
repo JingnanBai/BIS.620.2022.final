@@ -111,7 +111,7 @@ NULL
 #' Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database
 #' Patient Records,” BioMed Research International, vol. 2014, Article ID 781670,
 #' 11 pages, 2014.
-#' @name IDs_map
+#' @name ids_map
 #' @docType data
 #' @keywords data
 NULL
@@ -130,7 +130,7 @@ NULL
 #' \item{code_end}{the largetest code for this category;}
 #' }
 #' @source \url{https://simba.isr.umich.edu/restricted/docs/Mortality/icd_09_codes.pdf}
-#' @name ICD9_map
+#' @name icd9_map
 #' @docType data
 #' @keywords data
 NULL

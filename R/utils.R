@@ -14,8 +14,8 @@
 #' @importFrom dplyr filter arrange
 #' @examples
 #' data(diabetic_data)
-#' data(IDs_map)
-#' data.mapped <- data_ids_map(diabetic_data, IDs_map)
+#' data(ids_map)
+#' data.mapped <- data_ids_map(diabetic_data, ids_map)
 #' @export
 data_ids_map <- function(data, data_map){
   if(!("column" %in% colnames(data_map)) | !("value" %in% colnames(data_map)) |
@@ -72,7 +72,7 @@ format_factor_dataset <- function(x){
 #' @param x the original dataset need to do the transformation, need to be data.frame
 #' @param data_icd the mapping dataset with ICD-9 codes and its primary category,
 #' should have columns (`description`, `code_start`, `code_end`). refer to the sample
-#' data `ICD9_map` for more information about data format
+#' data `icd9_map` for more information about data format
 #' @param maplist the vector contains column names which need to be mapped
 #'
 #' @return the processed dataset
@@ -80,8 +80,8 @@ format_factor_dataset <- function(x){
 #' @importFrom sqldf sqldf
 #' @examples
 #' data(diabetic_data)
-#' data(ICD9_map)
-#' diabetic_data <- encode_ICD9(x = diabetic_data[1:100, ], data_icd = ICD9_map,
+#' data(icd9_map)
+#' diabetic_data <- encode_ICD9(x = diabetic_data[1:100, ], data_icd = icd9_map,
 #'                              maplist = c('diag_1', 'diag_2', 'diag_3'))
 #' @export
 encode_ICD9 <- function(x, data_icd, maplist = c('diag_1', 'diag_2', 'diag_3')){

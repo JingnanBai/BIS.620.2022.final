@@ -22,6 +22,6 @@ dataset with its meaning
 }
 \examples{
 data(diabetic_data)
-data(IDs_map)
-data.mapped <- data_ids_map(diabetic_data, IDs_map)
+data(ids_map)
+data.mapped <- data_ids_map(diabetic_data, ids_map)
 }
