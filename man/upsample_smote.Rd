@@ -19,8 +19,8 @@ This function would do SMOTE upsampling for given dataset while
 calculating appropriate over percentage automatically
 }
 \examples{
-df <- data.frame(y=rep(as.factor(c('Yes', 'No')), times=c(90, 10)),
+data <- data.frame(y=rep(as.factor(c('Yes', 'No')), times=c(90, 10)),
                  x1=rnorm(100),
                  x2=rnorm(100))
-new_df <- upsample_smote(df, "y")
+data.smote <- upsample_smote(data, "y")
 }
