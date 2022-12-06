@@ -274,7 +274,7 @@ model_predict <- function(data, mod, thre = 0.5, classname = c()){
   } else if(any(class(mod)=="randomForest")){
     pred_prob <- predict(mod, newdata = data, 'prob')[, 2]
   } else {
-    stop("model shoule %in% c(LogisticRegression(glm), RandomForest(rf))")
+    stop("model should %in% c(LogisticRegression(glm), RandomForest(rf))")
   }
   pos <- 1
   neg <- 0
