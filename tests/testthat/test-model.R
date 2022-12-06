@@ -55,3 +55,33 @@ test_that(
     expect_true(length(res) == 2)
   }
 )
+
+test_that(
+  "predictor with logistic regression model",{
+    data(diabetic_data)
+    diabetic_data <- diabetic_data[1:100, c('time_in_hospital', 'num_lab_procedures',
+                                            'readmitted')] |>
+                     ycol_mapped01(ycol = "readmitted", positive = "YES")
+    res <- build_LogisticRegression(diabetic_data,
+                             "readmitted", is.kfold = TRUE,
+                             cv_num = 2, seed = 103221, is.smote = FALSE, thre = 0.4)
+    pred.lr <- model_predict(diabetic_data[, c('time_in_hospital', 'num_lab_procedures')],
+                             res$model, thre = 0.4, classname = c("YES", "NO"))
+    expect_true(length(pred.lr) == dim(diabetic_data)[1])
+  }
+)
+
+test_that(
+  "predictor with random forest model",{
+    data(diabetic_data)
+    diabetic_data <- diabetic_data[1:100, c('time_in_hospital', 'num_lab_procedures',
+                                            'readmitted')] |>
+      ycol_mapped01(ycol = "readmitted", positive = "YES")
+    res <- build_RandomForest(diabetic_data,
+                             "readmitted", is.kfold = TRUE,
+                             cv_num = 2, seed = 103221, is.smote = FALSE, thre = 0.2)
+    pred.rf <- model_predict(diabetic_data[, c('time_in_hospital', 'num_lab_procedures')],
+                             res$model, thre = 0.4, classname = c("YES", "NO"))
+    expect_true(length(pred.rf) == dim(diabetic_data)[1])
+  }
+)

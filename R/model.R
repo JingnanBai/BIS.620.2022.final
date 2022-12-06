@@ -241,3 +241,49 @@ build_RandomForest <- function(data, ycol,
   result <- list(eval_tab = eval_tab, model = mod)
   return(result)
 }
+
+
+
+#' @title get prediction for newdata based on given dataset
+#' @description This function could be use for conduction classification based on
+#' given new dataset and models with specific threshold
+#' @param data new dataset for classification, should be data.frame
+#' @param mod the trained model, should be LogisticRegression(glm/lm) or
+#' RandomForest model(randomForest)
+#' @param thre classification threshold, if the predicted probability is higher
+#' than given threshold, it would be assigned as positive class. default = 0.5
+#' @param classname the name for the classes, should be assigned as c("positive
+#' class", "negative class"). if is empty, the return value would be 0/1
+#'
+#' @return predicted value, return as a single factor column
+#'
+#' @importFrom stats predict
+#' @examples
+#' data(diabetic_data)
+#' diabetic_data <- diabetic_data[1:100, c("time_in_hospital", "num_lab_procedures", "readmitted")] |>
+#'                  ycol_mapped01(ycol = "readmitted", positive = "YES")
+#' res <- build_LogisticRegression(diabetic_data,
+#'                          "readmitted", is.kfold = TRUE,
+#'                          cv_num = 2, seed = 103221, is.smote = FALSE, thre = 0.4)
+#' pred.lr <- model_predict(diabetic_data[, c("time_in_hospital", "num_lab_procedures")],
+#'                          res$model, thre = 0.4, classname = c("YES", "NO"))
+#' @export
+model_predict <- function(data, mod, thre = 0.5, classname = c()){
+  if(any(class(mod)=="glm")){
+    pred_prob <- predict(mod, newdata = data, 'response')
+  } else if(any(class(mod)=="randomForest")){
+    pred_prob <- predict(mod, newdata = data, 'prob')[, 2]
+  } else {
+    stop("model shoule %in% c(LogisticRegression(glm), RandomForest(rf))")
+  }
+  pos <- 1
+  neg <- 0
+  if(length(classname) > 0){
+    pos <- classname[1]
+    neg <- classname[2]
+  }
+  data$pred <- neg
+  data$pred[pred_prob > thre] <- pos
+  data$pred <- data$pred |> as.factor()
+  return(data$pred)
+}
