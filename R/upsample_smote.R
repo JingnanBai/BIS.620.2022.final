@@ -107,7 +107,7 @@ smote <- function(data, ycol, perc_over = 500, k = 5, perc_under = 200) {
 #' newcase <- smote_exs(data[91:100, ], "y", perc_over = 500, k = 5)
 #' @export
 smote_exs <- function(data, ycol, perc_over, k) {
-  t0 <- data.matrix(data[, 1:(ncol(data)-1)])
+  t0 <- data.matrix(data[, 1:(ncol(data) - 1)])
   if (perc_over < 100) { # only a percentage of the t cases will be smote
     nt <- nrow(t)
     idx <- sample(1:nt, as.integer((perc_over / 100) * nt))
@@ -128,9 +128,6 @@ smote_exs <- function(data, ycol, perc_over, k) {
 
     # the kNNs of case t[i,]
     xd <- scale(t0, t0[i, ], ranges)
-    # for (a in nomatr) {
-    #   xd[, a] <- xd[, a] == 0
-    # }
     dd <- drop(xd^2 %*% rep(1, ncol(xd)))
     knns <- order(dd)[2:(k + 1)]
 
