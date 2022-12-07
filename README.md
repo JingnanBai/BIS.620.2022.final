@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/JingnanBai/BIS.620.2022.final/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/JingnanBai/BIS.620.2022.final/actions/workflows/R-CMD-check.yaml)
+[![lint-check](https://github.com/JingnanBai/BIS.620.2022.final/actions/workflows/lint.yaml/badge.svg)](https://github.com/JingnanBai/BIS.620.2022.final/actions/workflows/lint.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/JingnanBai/BIS.620.2022.final/branch/master/graph/badge.svg)](https://app.codecov.io/gh/JingnanBai/BIS.620.2022.final?branch=master)
 <!-- badges: end -->
@@ -28,8 +29,5 @@ This is a basic example which shows you how to solve a common problem:
 
 ``` r
 library(BIS620.2022.final)
-#> Registered S3 method overwritten by 'quantmod':
-#>   method            from
-#>   as.zoo.data.frame zoo
 ## basic example code
 ```

@@ -4,28 +4,28 @@
 \alias{extreme_imbalance_col}
 \title{explore the extreme imbalance columns}
 \usage{
-extreme_imbalance_col(x, extreme.prop = 0.95, is.table = TRUE, is.drop = TRUE)
+extreme_imbalance_col(x, extreme_prop = 0.95, is_table = TRUE, is_drop = TRUE)
 }
 \arguments{
 \item{x}{dataset, need to be data.frame()}
 
-\item{extreme.prop}{if a column with more than extreme.prop obs concentrated in
-one single level, it could say that this column is extreme imbalance}
+\item{extreme_prop}{if a column with more than extreme_prop obs concentrated
+in one single level, it could say that this column is extreme imbalance}
 
-\item{is.table}{if TRUE, print a table to show the information about the
+\item{is_table}{if TRUE, print a table to show the information about the
 extreme imbalance column found by the rules above}
 
-\item{is.drop}{if TRUE, drop the extreme imbalance column}
+\item{is_drop}{if TRUE, drop the extreme imbalance column}
 }
 \value{
 processed dataset (data.frame())
 }
 \description{
-This function would do exploration to find extreme imbalance columns
-in given dataset
+This function would do exploration to find extreme imbalance
+columns in given dataset
 }
 \examples{
 data(diabetic_data)
-diabetic_data <- extreme_imbalance_col(diabetic_data[1:100, ], extreme.prop = .95,
-                                 is.drop = FALSE, is.table = TRUE)
+diabetic_data <- extreme_imbalance_col(diabetic_data[1:100, ],
+                   extreme_prop = .95, is_drop = FALSE, is_table = TRUE)
 }

@@ -2,12 +2,12 @@
 % Please edit documentation in R/upsample_smote.R
 \name{upsample_smote}
 \alias{upsample_smote}
-\title{upsampling with SMOTE for given dataset}
+\title{upsampling with smote for given dataset}
 \usage{
-upsample_smote(data.forsample, ycol)
+upsample_smote(data_forsample, ycol)
 }
 \arguments{
-\item{data.forsample}{dataset need to do upsampling, need to be data.frame}
+\item{data_forsample}{dataset need to do upsampling, need to be data.frame}
 
 \item{ycol}{the colname for the target column}
 }
@@ -15,12 +15,12 @@ upsample_smote(data.forsample, ycol)
 processed dataset (data.frame())
 }
 \description{
-This function would do SMOTE upsampling for given dataset while
+this function would do smote upsampling for given dataset while
 calculating appropriate over percentage automatically
 }
 \examples{
 data <- data.frame(y=rep(as.factor(c('Yes', 'No')), times=c(90, 10)),
                  x1=rnorm(100),
                  x2=rnorm(100))
-data.smote <- upsample_smote(data, "y")
+data_smote <- upsample_smote(data, "y")
 }

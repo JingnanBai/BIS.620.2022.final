@@ -4,7 +4,7 @@
 \alias{build_woe}
 \title{do WOE transformation for given dataset}
 \usage{
-build_woe(data, ycol = "readmitted", positive = "YES", is.dropsame = TRUE)
+build_woe(data, ycol = "readmitted", positive = "YES", is_dropsame = TRUE)
 }
 \arguments{
 \item{data}{dataset, need to be data.frame()}
@@ -13,7 +13,7 @@ build_woe(data, ycol = "readmitted", positive = "YES", is.dropsame = TRUE)
 
 \item{positive}{the level in target y which denotes the positive class}
 
-\item{is.dropsame}{if TRUE, drop the constant columns after transformation}
+\item{is_dropsame}{if TRUE, drop the constant columns after transformation}
 }
 \value{
 processed dataset (data.frame())
@@ -23,7 +23,8 @@ This function would do WOE transformation for given data
 }
 \examples{
 data(diabetic_data)
-diabetic_data.woe <- build_woe(diabetic_data[1:100, c("num_procedures", "readmitted")],
+diabetic_data_woe <- build_woe(diabetic_data[1:100, c("num_procedures",
+                                                     "readmitted")],
                                ycol = "readmitted",
-                               positive = "YES", is.dropsame = TRUE)
+                               positive = "YES", is_dropsame = TRUE)
 }

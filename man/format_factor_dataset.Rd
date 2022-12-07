@@ -13,8 +13,8 @@ format_factor_dataset(x)
 the processed datasaet
 }
 \description{
-This function could be use for transforming the character/category
-variables in given dataset to factor. If the column is numeric,
+This function could be use for transforming the character/
+category variables in given dataset to factor. If the column is numeric,
 process would be skipped
 }
 \examples{

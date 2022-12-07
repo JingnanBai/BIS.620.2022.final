@@ -15,8 +15,8 @@ plot_missing_pattern(data, nalist)
 the aggr obj
 }
 \description{
-This function could be use for plotting the missing proportion and
-possible patterns for specific dataset
+This function could be use for plotting the missing proportion
+and possible patterns for specific dataset
 }
 \examples{
 data(diabetic_data)

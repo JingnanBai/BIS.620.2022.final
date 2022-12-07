@@ -22,16 +22,19 @@ class", "negative class"). if is empty, the return value would be 0/1}
 predicted value, return as a single factor column
 }
 \description{
-This function could be use for conduction classification based on
-given new dataset and models with specific threshold
+This function could be use for conduction classification based
+on given new dataset and models with specific threshold
 }
 \examples{
 data(diabetic_data)
-diabetic_data <- diabetic_data[1:100, c("time_in_hospital", "num_lab_procedures", "readmitted")] |>
+diabetic_data <- diabetic_data[1:100, c("time_in_hospital",
+                                     "num_lab_procedures", "readmitted")] |>
                  ycol_mapped01(ycol = "readmitted", positive = "YES")
-res <- build_LogisticRegression(diabetic_data,
-                         "readmitted", is.kfold = TRUE,
-                         cv_num = 2, seed = 103221, is.smote = FALSE, thre = 0.4)
-pred.lr <- model_predict(diabetic_data[, c("time_in_hospital", "num_lab_procedures")],
+res <- build_logistic_regression(diabetic_data,
+                         "readmitted", is_kfold = TRUE,
+                         cv_num = 2, seed = 103221, is_smote = FALSE,
+                         thre = 0.4)
+pred_lr <- model_predict(diabetic_data[, c("time_in_hospital",
+                                           "num_lab_procedures")],
                          res$model, thre = 0.4, classname = c("YES", "NO"))
 }

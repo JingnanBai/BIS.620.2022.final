@@ -6,42 +6,39 @@
 \usage{
 missing_explore(
   x,
-  is.drop = TRUE,
-  upper.pro = 0.95,
-  lower.pro = 0.04,
-  is.fill = TRUE,
+  is_drop = TRUE,
+  upper_pro = 0.95,
+  lower_pro = 0.04,
+  is_fill = TRUE,
   fill_mark_fac = "others",
-  fill_cre_num = "medium",
-  is.plot = TRUE,
-  is.table = TRUE
+  fill_cre_num = "medium"
 )
 }
 \arguments{
 \item{x}{dataset, need to be data.frame()}
 
-\item{is.drop}{if TRUE, do the drop process to fix missing}
+\item{is_drop}{if TRUE, do the drop process to fix missing}
 
-\item{upper.pro}{if the missing proportion is higher than upper.pro for a
+\item{upper_pro}{if the missing proportion is higher than upper.pro for a
 specific variable, drop this column (only available when is.drop = TRUE)}
 
-\item{lower.pro}{if the missing proportion is lower than lower.pro for a
+\item{lower_pro}{if the missing proportion is lower than lower.pro for a
 specific variable, drop the observations that are missing in this column
 (only available when is.drop = TRUE)}
 
-\item{is.fill}{if TRUE, do the fill process to fix missing}
+\item{is_fill}{if TRUE, do the fill process to fix missing}
 
-\item{fill_mark_fac}{if a specific column is factor/character, fill the missing
-value with fill_mark_fac (only available when is.fill = TRUE)}
+\item{fill_mark_fac}{if a specific column is factor/character,
+fill the missing value with fill_mark_fac
+(only available when is.fill = TRUE)}
 
 \item{fill_cre_num}{if a specific column is numeric, fill the missing value
 with fill_cre_num (only available when is.fill = TRUE)}
-
-\item{is.plot}{if TRUE, give the plot to show the missing pattern}
-
-\item{is.table}{if TRUE, give a table to show the missing proportion}
 }
 \value{
-fixed dataset (data.frame())
+res(list) with pattern_plot = aggr plot; missing table = a
+data.frame that show the missing situation; newdata = fixed dataset
+(data.frame())
 }
 \description{
 This function would do exploration to show the missing pattern
@@ -49,8 +46,8 @@ in the dataset and try to fix it by dropping and filling
 }
 \examples{
 data(diabetic_data)
-diabetic_data <- missing_explore(diabetic_data[1:100, ],
-             is.drop = TRUE, upper.pro = 0.95, lower.pro = 0.04,
-             is.fill = TRUE, fill_mark_fac = "others", fill_cre_num = "median",
-             is.plot = TRUE, is.table = TRUE)
+res <- missing_explore(diabetic_data[1:100, ],
+             is_drop = TRUE, upper_pro = 0.95, lower_pro = 0.04,
+             is_fill = TRUE, fill_mark_fac = "others",
+             fill_cre_num = "median")
 }

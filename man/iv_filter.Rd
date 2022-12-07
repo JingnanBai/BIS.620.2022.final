@@ -4,10 +4,10 @@
 \alias{iv_filter}
 \title{model selection with iv (Information Value)}
 \usage{
-iv_filter(data.woe, iv_limit = 0.02, ycol = "readmitted", positive = "YES")
+iv_filter(data_woe, iv_limit = 0.02, ycol = "readmitted", positive = "YES")
 }
 \arguments{
-\item{data.woe}{dataset, need to be data.frame()}
+\item{data_woe}{dataset, need to be data.frame()}
 
 \item{iv_limit}{delete columns with iv value < iv_limit}
 
@@ -16,20 +16,20 @@ iv_filter(data.woe, iv_limit = 0.02, ycol = "readmitted", positive = "YES")
 \item{positive}{the level in target y which denotes the positive class}
 }
 \value{
-`out`, a list with data.iv = processed dataset, iv.info = a data.frame
-to show the iv value for each column
+`out`, a list with data_iv = processed dataset, iv_info =
+a data.frame to show the iv value for each column
 }
 \description{
-This function would do model selection based on iv (Information Value)
-for dataset after WOE transformation
+This function would do model selection based on iv
+(Information Value) for dataset after WOE transformation
 }
 \examples{
 data(diabetic_data)
 diabetic_data <- diabetic_data[1:100, c("num_procedures", "readmitted")]
-diabetic_data.woe <- build_woe(diabetic_data, ycol = "readmitted",
-                               positive = "YES", is.dropsame = TRUE)
-iv_res <- iv_filter(diabetic_data.woe, iv_limit = .02, ycol = "readmitted",
+diabetic_data_woe <- build_woe(diabetic_data, ycol = "readmitted",
+                               positive = "YES", is_dropsame = TRUE)
+iv_res <- iv_filter(diabetic_data_woe, iv_limit = .02, ycol = "readmitted",
                     positive = "YES")
-diabetic_data.iv <- iv_res$data.iv
-iv.info <- iv_res$iv.info
+diabetic_data_iv <- iv_res$data_iv
+iv_info <- iv_res$iv_info
 }

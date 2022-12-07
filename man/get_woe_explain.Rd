@@ -4,11 +4,11 @@
 \alias{get_woe_explain}
 \title{Get the correspondence between the woe code and the original data}
 \usage{
-get_woe_explain(data.woe, data)
+get_woe_explain(data_woe, data)
 }
 \arguments{
-\item{data.woe}{dataset after woe transformation. which column names should be
-the original column names in `data` with `_woe` as suffix}
+\item{data_woe}{dataset after woe transformation. which column names should
+be the original column names in `data` with `_woe` as suffix}
 
 \item{data}{original dataset}
 }
@@ -16,14 +16,14 @@ the original column names in `data` with `_woe` as suffix}
 data.frame to show the correspondence information
 }
 \description{
-This function would give a table to show the correspondence between
-the value after woe transformation and the value in original data
+This function would give a table to show the correspondence
+between the value after woe transformation and the value in original data
 }
 \examples{
 data(diabetic_data)
 diabetic_data <- diabetic_data[1:100, c("num_procedures", "readmitted")]
-diabetic_data.woe <- build_woe(diabetic_data,
+diabetic_data_woe <- build_woe(diabetic_data,
                                ycol = "readmitted",
-                               positive = "YES", is.dropsame = TRUE)
-tab <- get_woe_explain(diabetic_data.woe, diabetic_data)
+                               positive = "YES", is_dropsame = TRUE)
+tab <- get_woe_explain(diabetic_data_woe, diabetic_data)
 }

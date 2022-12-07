@@ -15,7 +15,8 @@ eval_model(pre, gt)
 `result` a data.frame with `acc`, `precision`, `recall`, `f1`
 }
 \description{
-This function could be use for do evaluation for a classification model
+This function could be use for do evaluation for a
+classification model
 }
 \examples{
 pred <- c(0,1,1,1,1,0)

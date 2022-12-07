@@ -10,8 +10,8 @@ replace_missing_col(
 )
 }
 \arguments{
-\item{x}{the column needed to do the replacement, if is.numeric(), the replacement
-process would be skipped.}
+\item{x}{the column needed to do the replacement, if is.numeric(), the
+replacement process would be skipped.}
 
 \item{mark_list}{the vector including marks which denotes missing}
 }
@@ -24,5 +24,6 @@ Unknown / invalid / null) with NA for a single column
 }
 \examples{
 data(diabetic_data)
-diabetic_data$race <- replace_missing_col(diabetic_data$race, mark_list = c('?'))
+diabetic_data$race <- replace_missing_col(diabetic_data$race,
+                                          mark_list = c('?'))
 }

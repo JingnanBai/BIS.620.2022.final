@@ -4,21 +4,21 @@
 \alias{outlier_explore}
 \title{explore the outlier obs in dataset and fix it with drop}
 \usage{
-outlier_explore(x, outlier.prop = 0.01, is.drop = FALSE, is.plot = TRUE)
+outlier_explore(x, outlier_prop = 0.01, is_drop = FALSE, is_plot = TRUE)
 }
 \arguments{
 \item{x}{dataset, need to be data.frame()}
 
-\item{outlier.prop}{define the maximum proportion of outliers. identify outliers
-with obs less than Q1-(1.5)IQR or more than Q3+(1.5)IQR and check the rough
-result with outlier.prop. if more than outlier.prop obs are found, assume they are
-dispersed due to the feature of the distribution, instead of being outliers.
-otherwise, assume outliers are found, save the index for processing (if applicable)
-and plot (if applicable)}
+\item{outlier_prop}{define the maximum proportion of outliers. identify
+outliers with obs less than Q1-(1.5)IQR or more than Q3+(1.5)IQR and check
+the rough result with outlier_prop. if more than outlier_prop obs are found,
+assume they are dispersed due to the feature of the distribution, instead of
+being outliers. otherwise, assume outliers are found, save the index for
+processing (if applicable) and plot (if applicable)}
 
-\item{is.drop}{if TRUE, drop the outliers}
+\item{is_drop}{if TRUE, drop the outliers}
 
-\item{is.plot}{if TRUE, give the boxplot to show the outliers}
+\item{is_plot}{if TRUE, give the boxplot to show the outliers}
 }
 \value{
 fixed dataset (data.frame())
@@ -29,6 +29,6 @@ in the dataset and try to fix it by dropping
 }
 \examples{
 data(diabetic_data)
-diabetic_data <- outlier_explore(diabetic_data[1:100,], outlier.prop = .01,
-                                 is.drop = FALSE, is.plot = TRUE)
+diabetic_data <- outlier_explore(diabetic_data[1:100,], outlier_prop = .01,
+                                 is_drop = FALSE, is_plot = TRUE)
 }

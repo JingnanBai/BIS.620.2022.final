@@ -3,8 +3,8 @@ test_that(
   {
     data(diabetic_data)
     data(ids_map)
-    data.mapped <- data_ids_map(diabetic_data[1:100, ], ids_map)
-    expect_true(dim(data.mapped)[1] == 100)
+    data_mapped <- data_ids_map(diabetic_data[1:100, ], ids_map)
+    expect_true(dim(data_mapped)[1] == 100)
 })
 
 test_that(
@@ -18,8 +18,8 @@ test_that(
   "format_factor_col",
   {
     data(diabetic_data)
-    data.factor <- format_factor_col(diabetic_data[1:100, "readmitted"])
-    expect_true(class(data.factor) == "factor")
+    data_factor <- format_factor_col(diabetic_data[1:100, "readmitted"])
+    expect_true(class(data_factor) == "factor")
   }
 )
 
@@ -34,21 +34,21 @@ test_that(
 
 
 test_that(
-  "encode_ICD9",{
+  "encode_icd9", {
     data(diabetic_data)
     data(icd9_map)
-    diabetic_data <- encode_ICD9(x = diabetic_data[1:100, ], data_icd = icd9_map,
-                                 maplist = c('diag_1'))
+    diabetic_data <- encode_icd9(x = diabetic_data[1:100, ],
+                                 data_icd = icd9_map, maplist = c("diag_1"))
     expect_true(dim(diabetic_data)[1] == 100)
   }
 )
 
 
 test_that(
-  "encode_ICD9",{
+  "encode_icd9", {
     data(diabetic_data)
     data(icd9_map)
-    expect_error(encode_ICD9(x = diabetic_data[1:100, ], data_icd = data.frame,
-                             maplist = c('diag_1')))
+    expect_error(encode_icd9(x = diabetic_data[1:100, ],
+                             data_icd = data.frame(), maplist = c("diag_1")))
   }
 )

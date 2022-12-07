@@ -17,8 +17,8 @@ ycol_mapped01(data, ycol, positive)
 the processed dataset
 }
 \description{
-This function could be use for mapping the target column for given
-dataset to 0/1, as 1 refer to the positive class
+This function could be use for mapping the target column for
+given dataset to 0/1, as 1 refer to the positive class
 }
 \examples{
 data(diabetic_data)

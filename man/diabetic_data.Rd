@@ -13,30 +13,32 @@ was readmitted in less than 30 days and "No" for no record of readmission.}
 
 \item{race}{Values: Caucasian, Asian, African American, Hispanic, and other}
 \item{gender}{Values: male, female, and unknown/invalid}
-\item{age}{Grouped in 10-year intervals: `[0, 10)`, `[10, 20)`, ..., `[90, 100)`}
+\item{age}{Grouped in 10-year intervals: `[0, 10)`, `[10, 20)`, ...,
+`[90, 100)`}
 \item{weight}{Weight in pounds}
-\item{admission_type_id}{Integer identifier corresponding to 9 distinct values,
-for example, emergency, urgent, elective, newborn, and not available}
-\item{discharge_disposition_id}{Integer identifier corresponding to 29 distinct
-values, for example, discharged to home, expired, and not available}
+\item{admission_type_id}{Integer identifier corresponding to 9 distinct
+values, for example, emergency, urgent, elective, newborn, and not available}
+\item{discharge_disposition_id}{Integer identifier corresponding to 29
+distinct values, for example, discharged to home, expired, and not available}
 \item{admission_source_id}{Integer identifier corresponding to 21 distinct
 values, for example, physician referral, emergency room, and transfer from a
 hospital}
-\item{time_in_hospital}{Integer number of days between admission and discharge}
+\item{time_in_hospital}{Integer number of days between admission and
+discharge}
 \item{payer_code}{Integer identifier corresponding to 23 distinct values,
 for example, Blue Cross, Blue Shield, Medicare, and self-pay}
 \item{medical_specialty}{Integer identifier of a specialty of the admitting
-physician, corresponding to 84 distinct values, for example, cardiology, internal
-medicine, family or general practice, and surgeon}
+physician, corresponding to 84 distinct values, for example, cardiology,
+internal medicine, family or general practice, and surgeon}
 \item{num_lab_procedures}{Number of lab tests performed during the encounter}
 \item{num_procedures}{Number of procedures (other than lab tests) performed
 during the encounter}
 \item{num_medications}{Number of distinct generic names administered during
 the encounter}
-\item{number_outpatient}{Number of outpatient visits of the patient in the year
-preceding the encounter}
-\item{number_emergency}{ Number of emergency visits of the patient in the year
-preceding the encounter}
+\item{number_outpatient}{Number of outpatient visits of the patient in the
+year preceding the encounter}
+\item{number_emergency}{ Number of emergency visits of the patient in the
+year preceding the encounter}
 \item{number_inpatient}{Number of inpatient visits of the patient in the year
 preceding the encounter}
 \item{diag_1}{The primary diagnosis (coded as first three digits of ICD9);
@@ -48,10 +50,10 @@ ICD9); 954 distinct values}
 \item{number_diagnoses}{Number of diagnoses entered to the system}
 \item{max_glu_serum}{Indicates the range of the result or if the test was not
 taken. Values: “>200,” “>300,” “normal,” and “none” if not measured}
-\item{A1Cresult}{Indicates the range of the result or if the test was not taken.
-Values: “>8” if the result was greater than 8%, “>7” if the result was greater
-than 7% but less than 8%, “normal” if the result was less than 7%, and “none”
-if not measured.}
+\item{A1Cresult}{Indicates the range of the result or if the test was not
+taken. Values: “>8” if the result was greater than 8%, “>7” if the result was
+greater than 7% but less than 8%, “normal” if the result was less than 7%,
+and “none” if not measured.}
 \item{metformin}{Down or Steady or Up, or No denotes no treatment}
 \item{repaglinide}{Down or Steady or Up, or No denotes no treatment}
 \item{nateglinide}{Down or Steady or Up, or No denotes no treatment}
@@ -73,9 +75,12 @@ if not measured.}
 \item{insulin}{Down or Steady or Up, or No denotes no treatment}
 \item{glyburide.metformin}{Down or Steady or Up, or No denotes no treatment}
 \item{glipizide.metformin}{Down or Steady or Up, or No denotes no treatment}
-\item{glimepiride.pioglitazone}{Down or Steady or Up, or No denotes no treatment}
-\item{metformin.rosiglitazone}{Down or Steady or Up, or No denotes no treatment}
-\item{metformin.pioglitazone}{Down or Steady or Up, or No denotes no treatment}
+\item{glimepiride.pioglitazone}{Down or Steady or Up, or No denotes
+no treatment}
+\item{metformin.rosiglitazone}{Down or Steady or Up, or No denotes no
+treatment}
+\item{metformin.pioglitazone}{Down or Steady or Up, or No denotes no
+treatment}
 \item{change}{Indicates if there was a change in diabetic medications
 (either dosage or generic name). Values: “change” and “no change”}
 \item{diabetesMed}{Indicates if there was any diabetic medication prescribed.
@@ -85,9 +90,9 @@ Values: “yes” and “no”}
 \source{
 Beata Strack, Jonathan P. DeShazo, Chris Gennings, Juan L. Olmo,
 Sebastian Ventura, Krzysztof J. Cios, and John N. Clore, “Impact of HbA1c
-Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical Database
-Patient Records,” BioMed Research International, vol. 2014, Article ID 781670,
-11 pages, 2014.
+Measurement on Hospital Readmission Rates: Analysis of 70,000 Clinical
+Database Patient Records,” BioMed Research International, vol. 2014,
+Article ID 781670, 11 pages, 2014.
 }
 \description{
 This data has been prepared to analyze factors related to

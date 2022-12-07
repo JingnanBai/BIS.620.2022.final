@@ -13,7 +13,8 @@ a dataset with 17 obs. and 3 variables:
 }
 }
 \source{
-\url{https://simba.isr.umich.edu/restricted/docs/Mortality/icd_09_codes.pdf}
+\url{https://simba.isr.umich.edu/restricted/docs/Mortality/icd_09_
+codes.pdf}
 }
 \description{
 the map information for ICD-9 coding and primary category

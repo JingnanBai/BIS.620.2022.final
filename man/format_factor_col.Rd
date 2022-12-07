@@ -13,8 +13,9 @@ format_factor_col(x)
 the processed column
 }
 \description{
-This function could be use for transforming given character/category
-variables to factor. If the given one is numeric, process would be skipped
+This function could be use for transforming given character/
+category variables to factor. If the given one is numeric, process would be
+skipped
 }
 \examples{
 data(diabetic_data)

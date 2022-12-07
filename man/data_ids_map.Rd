@@ -7,7 +7,8 @@
 data_ids_map(data, data_map)
 }
 \arguments{
-\item{data}{the original dataset need to do the replacement. need to be data.frame}
+\item{data}{the original dataset need to do the replacement. need to be
+data.frame}
 
 \item{data_map}{the map information, need to be data.frame,
 with `column` denotes the variable name, `value` denotes the ids valu,
@@ -17,11 +18,11 @@ and `description` shows its meaning}
 the mapped dataset
 }
 \description{
-This function could be use for replacing the id value in original
-dataset with its meaning
+This function could be use for replacing the id value in
+original dataset with its meaning
 }
 \examples{
 data(diabetic_data)
 data(ids_map)
-data.mapped <- data_ids_map(diabetic_data, ids_map)
+data_mapped <- data_ids_map(diabetic_data, ids_map)
 }

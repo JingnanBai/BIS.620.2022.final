@@ -17,7 +17,8 @@ build_kfold(k, n, seed = NA)
 `kfold` a matrix with each index of obs in k groups
 }
 \description{
-This function could be use for groupping idx for K-fold validation
+This function could be use for groupping idx for K-fold
+validation
 }
 \examples{
 data(diabetic_data)
