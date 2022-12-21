@@ -30,7 +30,6 @@ diabetic_data <- replace_missing_dataset(diabetic_data, mark_list = mark_list)
 diabetic_ori <- diabetic_data
 
 ## -----------------------------------------------------------------------------
-# knitr::opts_chunk$set(fig.width=5, fig.height=4) 
 res <- missing_explore(diabetic_data)
 # show the missing proportion
 res$missing_table
@@ -64,7 +63,8 @@ diabetic_data_woe <- res_woe$newdata
 tab_explain_woe <- get_woe_explain(diabetic_data_woe, diabetic_data)
 
 ## -----------------------------------------------------------------------------
-# codes for sample data to show the function which conduct SMOTE, it will be combined with the modelling function later
+# codes for sample data to show the function which conduct SMOTE
+# it will be combined with the modelling function later
 sample_smote <- upsample_smote(diabetic_data_woe[1:100, ], ycol = "readmitted")
 
 summary(diabetic_data_woe[1:100, "readmitted"])
@@ -75,7 +75,7 @@ xcol <- c("race", "payer_code", "age", "insulin", "change", "max_glu_serum")
 plot_mosaic(diabetic_ori, ycol = "readmitted", xcol = xcol, ncol = 3)
 
 ## ----fig.height=8, fig.width=8, out.height="65%", out.width="65%"-------------
-xcol_num <- c("time_in_hospital", "num_lab_procedures", "num_medications", 
+xcol_num <- c("time_in_hospital", "num_lab_procedures", "num_medications",
               "number_inpatient", "number_diagnoses")
 plot_comparehist(diabetic_ori, "readmitted", xcol_num, ncol = 2, bins = 10)
 
@@ -105,9 +105,9 @@ res_logistic <- build_logistic_regression(diabetic_data_woe,
 res_logistic$eval_tab
 
 ## -----------------------------------------------------------------------------
-plot(res_logistic$roc_res, print.auc=TRUE, auc.polygon=TRUE,
-           grid.col=c("green", "red"), max.auc.polygon=TRUE,
-           auc.polygon.col="skyblue", print.thres = T)
+plot(res_logistic$roc_res, print.auc = TRUE, auc.polygon = TRUE,
+           grid.col = c("green", "red"), max.auc.polygon = TRUE,
+           auc.polygon.col = "skyblue", print.thres = TRUE)
 
 ## -----------------------------------------------------------------------------
 res_logistic$best_thre
@@ -123,7 +123,7 @@ tab_explain_woe[tab_explain_woe$variable_name %in% xcol, ]
 # build rf model
 res_rf <- build_random_forest(diabetic_data_woe,
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
 
 ## -----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ res_rf$eval_tab
 
 ## ----paged.print=TRUE---------------------------------------------------------
 impt <- res_rf$model$importance
-impt <- impt[order(impt[, "MeanDecreaseGini"], decreasing = TRUE), ] |> 
+impt <- impt[order(impt[, "MeanDecreaseGini"], decreasing = TRUE), ] |>
   data.frame()
 colnames(impt) <- c("MeanDecreaseGini")
 impt
@@ -143,16 +143,14 @@ iv_res <- iv_filter(diabetic_data_woe, iv_limit = .01,
 diabetic_data_iv <- iv_res$data_iv
 iv_info <- iv_res$iv_info
 
-dim(diabetic_data_iv)
-
-# get IV value for each variables: 
-# print(iv_info)
+dim(diabetic_data_iv) |> print()
+iv_info
 
 ## ----rf for iv----------------------------------------------------------------
 # build rf model
 res_rf_iv <- build_random_forest(diabetic_data_iv,
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
 
 ## -----------------------------------------------------------------------------
@@ -164,7 +162,8 @@ res_rf_iv$eval_tab
 
 # get 10 patients randomly for prediction
 set.seed("2022620")
-idx <- sample(1:dim(diabetic_data_woe)[1], 10)
+n <- dim(diabetic_data_woe)[1]
+idx <- sample(1:n, 10)
 true_label <- diabetic_data[idx, "readmitted"]
 data <- diabetic_data_woe[idx,
                     -which(colnames(diabetic_data_woe) %in% c("readmitted"))]
@@ -173,12 +172,12 @@ rf_mod <- res_rf$model
 rf_mod_iv <- res_rf_iv$model
 
 # do predict with functions below in BIS620.2022.final package:
-pred_lr <- model_predict(data, res_logistic$model, 
-                         thre = res_logistic$best_thre, 
+pred_lr <- model_predict(data, res_logistic$model,
+                         thre = res_logistic$best_thre,
                          classname = c("YES", "NO"))
-pred_rf <- model_predict(data, res_rf$model, thre = res_rf$best_thre, 
+pred_rf <- model_predict(data, res_rf$model, thre = res_rf$best_thre,
                          classname = c("YES", "NO"))
-pred_rf_iv <- model_predict(data, res_rf_iv$model, thre = res_rf_iv$best_thre, 
+pred_rf_iv <- model_predict(data, res_rf_iv$model, thre = res_rf_iv$best_thre,
                          classname = c("YES", "NO"))
 
 # show the result
@@ -186,11 +185,10 @@ predict_sample <- true_label |> data.frame()
 predict_sample$pred_lr <- pred_lr
 predict_sample$pred_rf <- pred_rf
 predict_sample$pred_rf_iv <- pred_rf_iv
-colnames(predict_sample) <- c("true label", 
-                              "pred_Logistic", 
-                              "pred_RF", 
+colnames(predict_sample) <- c("true label",
+                              "pred_Logistic",
+                              "pred_RF",
                               "pred_RF+IV")
 
 predict_sample
-
 

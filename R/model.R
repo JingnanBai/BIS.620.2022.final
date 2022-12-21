@@ -111,6 +111,7 @@ build_kfold <- function(k, n, seed = NA) {
 #'                          cv_num = 2, seed = 103221, is_smote = FALSE,
 #'                          thre = 0.4)
 #' @export
+#'
 build_logistic_regression <- function(data, ycol,
                                      is_kfold = FALSE, cv_num = 10, seed = NA,
                                      is_smote = FALSE,
@@ -163,9 +164,7 @@ build_logistic_regression <- function(data, ycol,
     fscore <- result$f1 + fscore
   }
   if (is_kfold) {
-    if (is_smote) {
-      data <- upsample_smote(data, ycol)
-    }
+    data <- upsample_smote(data, ycol)
     mod <- glm(form, data = data, family = binomial(link = "logit"))
     pred_prob <- predict(mod, newdata = data, "response")
     roc0 <- roc(data$readmitted, pred_prob, quiet = TRUE)
@@ -229,26 +228,27 @@ build_logistic_regression <- function(data, ycol,
 #'                          thre = 0.2)
 #' @export
 build_random_forest <- function(data, ycol,
-                                     is_kfold = FALSE, cv_num = 10, seed = NA,
-                                     is_smote = FALSE, thre = NA,
+                                is_kfold = FALSE, cv_num = 10, seed = NA,
+                                is_smote = FALSE, thre = NA,
                                 ntree = 100, maxnodes = 50, mtry = NA) {
   if (!is.na(seed)) {
     set.seed(seed)
   }
   if (is_kfold) {
     epoch_num <- cv_num
-    } else {
-      epoch_num <- 1
-    }
+  } else {
+    epoch_num <- 1
+  }
   form <- as.formula(paste(ycol, " ~ ."))
   auc <- 0
   pre <- 0
   acc <- 0
   recall <- 0
   fscore <- 0
+  data <- upsample_smote(data, ycol, perc_over = 400)
   if (is_kfold) {
     kfold <- build_kfold(cv_num, dim(data)[1], seed = seed)
-    }
+  }
   for (epoch in 1:epoch_num) {
     if (is_kfold) {
       train <- data[-kfold[, epoch], ]
@@ -256,9 +256,6 @@ build_random_forest <- function(data, ycol,
     } else {
       train <- data
       test <- data
-    }
-    if (is_smote) {
-      train <- upsample_smote(train, ycol)
     }
     if (is.na(mtry)) {
       mtry <- log2(dim(train)[2]) |> floor()
@@ -288,19 +285,14 @@ build_random_forest <- function(data, ycol,
     fscore <- result$f1 + fscore
   }
   if (is_kfold) {
-    if (is_smote) {
-      data <- upsample_smote(data, ycol)
-    }
     mod <- randomForest(form, data = data)
     mod$importance <- randomForest::importance(mod)
     pred_prob <- predict(mod, newdata = data, "prob")[, 2]
     roc0 <- roc(as.ordered(data$readmitted), as.ordered(pred_prob),
                 quiet = TRUE)
-    if (is.na(thre)) {
-      max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
-      idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
-      thre <- roc0$thresholds[idx]
-    }
+    max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
+    idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
+    thre <- roc0$thresholds[idx]
   }
   eval_tab <- cbind(c("accuracy", "precision", "F1-score", "recall", "AUC"),
                     round(c(acc, pre, fscore, recall, auc) / epoch_num, 3)) |>

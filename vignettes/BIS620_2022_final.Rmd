@@ -128,7 +128,6 @@ function `missing_explore`, which would give `missing_table` to show the
 proportion and `pattern_plot` to show the missing pattern
 
 ```{r}
-# knitr::opts_chunk$set(fig.width=5, fig.height=4) 
 res <- missing_explore(diabetic_data)
 # show the missing proportion
 res$missing_table
@@ -271,7 +270,8 @@ analyze the minority class and generate new samples to achieve an
 overall balance. following function would do upsampling with SMOTE and calculate the appropriate proportion needed for new cases generation automatically.
 
 ```{r}
-# codes for sample data to show the function which conduct SMOTE, it will be combined with the modelling function later
+# codes for sample data to show the function which conduct SMOTE
+# it will be combined with the modelling function later
 sample_smote <- upsample_smote(diabetic_data_woe[1:100, ], ycol = "readmitted")
 
 summary(diabetic_data_woe[1:100, "readmitted"])
@@ -312,7 +312,7 @@ Besides, check the relationship between the numerical variables and
 readmission. Similarly, the following function would give a histogram for each variable in `xcol_num` v.s. readmitted.
 
 ```{r fig.height=8, fig.width=8, out.height="65%", out.width="65%"}
-xcol_num <- c("time_in_hospital", "num_lab_procedures", "num_medications", 
+xcol_num <- c("time_in_hospital", "num_lab_procedures", "num_medications",
               "number_inpatient", "number_diagnoses")
 plot_comparehist(diabetic_ori, "readmitted", xcol_num, ncol = 2, bins = 10)
 ```
@@ -425,9 +425,9 @@ plot:
 res_logistic$eval_tab
 ```
 ```{r}
-plot(res_logistic$roc_res, print.auc=TRUE, auc.polygon=TRUE,
-           grid.col=c("green", "red"), max.auc.polygon=TRUE,
-           auc.polygon.col="skyblue", print.thres = T)
+plot(res_logistic$roc_res, print.auc = TRUE, auc.polygon = TRUE,
+           grid.col = c("green", "red"), max.auc.polygon = TRUE,
+           auc.polygon.col = "skyblue", print.thres = TRUE)
 ```
 
 
@@ -492,7 +492,7 @@ and calculating proper threshold automatically.
 # build rf model
 res_rf <- build_random_forest(diabetic_data_woe,
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
 ```
 
@@ -510,7 +510,7 @@ Also, use random forest to give the importance of different variables.
 
 ```{r paged.print=TRUE}
 impt <- res_rf$model$importance
-impt <- impt[order(impt[, "MeanDecreaseGini"], decreasing = TRUE), ] |> 
+impt <- impt[order(impt[, "MeanDecreaseGini"], decreasing = TRUE), ] |>
   data.frame()
 colnames(impt) <- c("MeanDecreaseGini")
 impt
@@ -534,10 +534,8 @@ iv_res <- iv_filter(diabetic_data_woe, iv_limit = .01,
 diabetic_data_iv <- iv_res$data_iv
 iv_info <- iv_res$iv_info
 
-dim(diabetic_data_iv)
-
-# get IV value for each variables: 
-# print(iv_info)
+dim(diabetic_data_iv) |> print()
+iv_info
 ```
 
 get 15 explanatory variables left.
@@ -548,7 +546,7 @@ rebuild the model with data after filtering:
 # build rf model
 res_rf_iv <- build_random_forest(diabetic_data_iv,
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
 ```
 
@@ -580,7 +578,8 @@ the models trained above:
 
 # get 10 patients randomly for prediction
 set.seed("2022620")
-idx <- sample(1:dim(diabetic_data_woe)[1], 10)
+n <- dim(diabetic_data_woe)[1]
+idx <- sample(1:n, 10)
 true_label <- diabetic_data[idx, "readmitted"]
 data <- diabetic_data_woe[idx,
                     -which(colnames(diabetic_data_woe) %in% c("readmitted"))]
@@ -589,12 +588,12 @@ rf_mod <- res_rf$model
 rf_mod_iv <- res_rf_iv$model
 
 # do predict with functions below in BIS620.2022.final package:
-pred_lr <- model_predict(data, res_logistic$model, 
-                         thre = res_logistic$best_thre, 
+pred_lr <- model_predict(data, res_logistic$model,
+                         thre = res_logistic$best_thre,
                          classname = c("YES", "NO"))
-pred_rf <- model_predict(data, res_rf$model, thre = res_rf$best_thre, 
+pred_rf <- model_predict(data, res_rf$model, thre = res_rf$best_thre,
                          classname = c("YES", "NO"))
-pred_rf_iv <- model_predict(data, res_rf_iv$model, thre = res_rf_iv$best_thre, 
+pred_rf_iv <- model_predict(data, res_rf_iv$model, thre = res_rf_iv$best_thre,
                          classname = c("YES", "NO"))
 
 # show the result
@@ -602,13 +601,12 @@ predict_sample <- true_label |> data.frame()
 predict_sample$pred_lr <- pred_lr
 predict_sample$pred_rf <- pred_rf
 predict_sample$pred_rf_iv <- pred_rf_iv
-colnames(predict_sample) <- c("true label", 
-                              "pred_Logistic", 
-                              "pred_RF", 
+colnames(predict_sample) <- c("true label",
+                              "pred_Logistic",
+                              "pred_RF",
                               "pred_RF+IV")
 
 predict_sample
-
 ```
 
 <br>
