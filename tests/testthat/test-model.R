@@ -50,6 +50,20 @@ test_that(
 )
 
 test_that(
+  "build rf model with no thre and kfold = TRUE", {
+    data(diabetic_data)
+    diabetic_data <- diabetic_data[1:100,
+                                   c("time_in_hospital", "readmitted")] |>
+      ycol_mapped01(ycol = "readmitted", positive = "YES")
+    res <- build_random_forest(diabetic_data,
+                               "readmitted", is_kfold = TRUE,
+                               cv_num = 2, seed = 103221,
+                               is_smote = TRUE, thre = NA)
+    expect_true(length(res) == 4)
+  }
+)
+
+test_that(
   "build rf model: calculate thre automatically with no kfold", {
     data(diabetic_data)
     diabetic_data <- diabetic_data[1:100,

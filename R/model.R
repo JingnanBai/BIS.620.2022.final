@@ -163,6 +163,9 @@ build_logistic_regression <- function(data, ycol,
     fscore <- result$f1 + fscore
   }
   if (is_kfold) {
+    if (is_smote) {
+      data <- upsample_smote(data, ycol)
+    }
     mod <- glm(form, data = data, family = binomial(link = "logit"))
     pred_prob <- predict(mod, newdata = data, "response")
     roc0 <- roc(data$readmitted, pred_prob, quiet = TRUE)
@@ -243,8 +246,6 @@ build_random_forest <- function(data, ycol,
   acc <- 0
   recall <- 0
   fscore <- 0
-  #here!!!!!!!!!!!!!!!!!!!!!!
-  data <- upsample_smote(data, ycol, perc_over = 400)
   if (is_kfold) {
     kfold <- build_kfold(cv_num, dim(data)[1], seed = seed)
     }
@@ -256,9 +257,9 @@ build_random_forest <- function(data, ycol,
       train <- data
       test <- data
     }
-    # if (is_smote) {
-    #   train <- upsample_smote(train, ycol)
-    # }
+    if (is_smote) {
+      train <- upsample_smote(train, ycol)
+    }
     if (is.na(mtry)) {
       mtry <- log2(dim(train)[2]) |> floor()
     }
@@ -271,10 +272,12 @@ build_random_forest <- function(data, ycol,
     if (is.na(thre)) {
       max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
       idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
-      thre <- roc0$thresholds[idx]
+      thre_temp <- roc0$thresholds[idx]
+    } else {
+      thre_temp <- thre
     }
     test$pred <- 0
-    test$pred[pred_prob > thre] <- 1
+    test$pred[pred_prob > thre_temp] <- 1
     test$pred <- test$pred |> as.factor()
     result <- eval_model(test$pred, test$readmitted)
 
@@ -285,7 +288,9 @@ build_random_forest <- function(data, ycol,
     fscore <- result$f1 + fscore
   }
   if (is_kfold) {
-    # data <- upsample_smote(data, ycol)
+    if (is_smote) {
+      data <- upsample_smote(data, ycol)
+    }
     mod <- randomForest(form, data = data)
     mod$importance <- randomForest::importance(mod)
     pred_prob <- predict(mod, newdata = data, "prob")[, 2]

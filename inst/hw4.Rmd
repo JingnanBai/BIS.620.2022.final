@@ -1,0 +1,133 @@
+---
+title: "homework 4"
+author: "Jingnan Bai"
+format:
+  html:
+    self-contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r eval = FALSE}
+library(dplyr)
+library(reticulate)
+use_condaenv("base", required = TRUE)
+req = import("requests")
+```
+
+<br>
+
+### 1. Python in R (skip)
+
+**Use the python code here[https://github.com/alecstein/dolt_datascience/blob/master/transparency_in_coverage_filesizes/humana.py] to create an R function to download the first batch of files (name, size, sizeToDisplay, modifiedDate, and url). This is essentially what you’d get if you ran the while no finished: loop for 1 iteration. **
+```{r}
+# params = py_dict(
+#   c("fileType", "iDisplayLength", "iDisplayStart"),
+#   list("innetwork", "2000", 0)
+# )
+# resp = req$get("https://developers.humana.com/Resource/GetData", params = params)$json()
+```
+
+---
+
+### 2. Final Project
+**Provide a team, data description, and research question for your final. For your final you are going to use one of the data sets we have used in class (social vulnerability index), panitumumab clinical trial, clinicaltrials.gov, or some other health-related data set to provide an analysis, written as a vignette in your bis620.2022 package, complete with relevant documented and tested processing, analysis, and visualization functions. Your job for the second homework problem is to provide:**
+
+- Your team (name and netid).
+- A description of the data.
+- The motivation for your research question.
+- A scientific research question.
+
+
+<br>
+
+##### (1) **Team:** Jingnan Bai (netid: jb3633)
+
+##### (2) **Data Description: **
+
+I would like to use the data related to diabetes based on [this paper](https://www.hindawi.com/journals/bmri/2014/781670/#materials-and-methods) that represents the 10 years clinical care record for diabetic patients at 130 US hospitals. With 66221 obs. and 48 variables, it includes the basic information for the patients (e.g. gender, race, weight) while clinical care information (e.g. laboratory tests results, medications, whether being readmitted in the hospital). 
+
+This dataset is extracted by the authors of the paper from Health Facts database (Cerner Corporation, Kansas City, MO).
+
+Detailed data description is as below:
+
+|Feature name|description & values|
+|---|---|
+|readmitted|Days to inpatient readmission. Values: "YES" if the patientwas readmitted in less than 30 days and "No" for no record of readmission.|
+|race|Values: Caucasian, Asian, African American, Hispanic, and other|
+|gender|Values: male, female, and unknown/invalid|
+|age|Grouped in 10-year intervals: `[0, 10)`, `[10, 20)`, ..., `[90, 100)`|
+|weight|Weight in pounds|
+|admission_type_id|Integer identifier corresponding to 9 distinct values,for example, emergency, urgent, elective, newborn, and not available|
+|discharge_disposition_id|Integer identifier corresponding to 29 distinctvalues, for example, discharged to home, expired, and not available|
+|admission_source_id|Integer identifier corresponding to 21 distinctvalues, for example, physician referral, emergency room, and transfer from ahospital|
+|time_in_hospital|Integer number of days between admission and discharge|
+|payer_code|Integer identifier corresponding to 23 distinct values,for example, Blue Cross, Blue Shield, Medicare, and self-pay|
+|medical_specialty|Integer identifier of a specialty of the admittingphysician, corresponding to 84 distinct values, for example, cardiology, internalmedicine, family or general practice, and surgeon|
+|num_lab_procedures|Number of lab tests performed during the encounter|
+|num_procedures|Number of procedures (other than lab tests) performedduring the encounter|
+|num_medications|Number of distinct generic names administered duringthe encounter|
+|number_outpatient|Number of outpatient visits of the patient in the yearpreceding the encounter|
+|number_emergency| Number of emergency visits of the patient in the yearpreceding the encounter|
+|number_inpatient|Number of inpatient visits of the patient in the yearpreceding the encounter|
+|diag_1|The primary diagnosis (coded as first three digits of ICD9);848 distinct values|
+|diag_2|Secondary diagnosis (coded as first three digits of ICD9);923 distinct values|
+|diag_3|Additional secondary diagnosis (coded as first three digits ofICD9); 954 distinct values|
+|number_diagnoses|Number of diagnoses entered to the system|
+|max_glu_serum|Indicates the range of the result or if the test was nottaken. Values: “>200,” “>300,” “normal,” and “none” if not measured|
+|A1Cresult|Indicates the range of the result or if the test was not taken.Values: “>8” if the result was greater than 8%, “>7” if the result was greaterthan 7% but less than 8%, “normal” if the result was less than 7%, and “none”if not measured.|
+|metformin|Down or Steady or Up, or No denotes no treatment|
+|repaglinide|Down or Steady or Up, or No denotes no treatment|
+|nateglinide|Down or Steady or Up, or No denotes no treatment|
+|chlorpropamide|Down or Steady or Up, or No denotes no treatment|
+|glimepiride|Down or Steady or Up, or No denotes no treatment|
+|acetohexamide|Down or Steady or Up, or No denotes no treatment|
+|glipizide|Down or Steady or Up, or No denotes no treatment|
+|glyburide|Down or Steady or Up, or No denotes no treatment|
+|tolbutamide|Down or Steady or Up, or No denotes no treatment|
+|pioglitazone|Down or Steady or Up, or No denotes no treatment|
+|rosiglitazone|Down or Steady or Up, or No denotes no treatment|
+|acarbose|Down or Steady or Up, or No denotes no treatment|
+|miglitol|Down or Steady or Up, or No denotes no treatment|
+|troglitazone|Down or Steady or Up, or No denotes no treatment|
+|tolazamide|Down or Steady or Up, or No denotes no treatment|
+|examide|Down or Steady or Up, or No denotes no treatment|
+|citoglipton|Down or Steady or Up, or No denotes no treatment|
+|citoglipton|Down or Steady or Up, or No denotes no treatment|
+|insulin|Down or Steady or Up, or No denotes no treatment|
+|glyburide.metformin|Down or Steady or Up, or No denotes no treatment|
+|glipizide.metformin|Down or Steady or Up, or No denotes no treatment|
+|glimepiride.pioglitazone|Down or Steady or Up, or No denotes no treatment|
+|metformin.rosiglitazone|Down or Steady or Up, or No denotes no treatment|
+|metformin.pioglitazone|Down or Steady or Up, or No denotes no treatment|
+|change|Indicates if there was a change in diabetic medications(either dosage or generic name). Values: “change” and “no change”|
+|diabetesMed|Indicates if there was any diabetic medication prescribed.Values: “yes” and “no”|
+
+
+<br>
+
+##### (3) **motivation**
+
+Diabetes is a non-recoverable disease that requires lifelong treatment once diagnosed. Due to the long disease cycle, it is prone to recurrence and always needs patients to be readmitted to the hospital multiple times. However, frequent readmissions can be a significant drain on healthcare resources, while it is also an important indicator that shows the quality of care provided by healthcare facilities. 
+
+Based on that, it is significant to explore the factors contributing to diabetic patient readmission and evaluate the risk of readmission for a specific patient using appropriate methods.
+
+<br>
+
+##### (4) **scientific research question** 
+
+I would like to focus on the question: **Impact factors on diabetic patients readmission and prediction**
+
+Based on the readmission indicators in the above dataset, I would conduct data cleaning, exploration, visualization and modeling to analyze the impact of various factors on the readmission of diabetic patients, while building predictive models to help evaluate the risk of readmission of a given patient.
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+

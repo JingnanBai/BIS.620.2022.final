@@ -413,7 +413,7 @@ evaluate the result and give the result table
 
 ```{r}
 # build logistic model
-res_logistic <- build_logistic_regression(diabetic_data_woe,
+res_logistic <- build_logistic_regression(diabetic_data_woe[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
                       is_smote = TRUE, seed = 103221, auto_thre = TRUE)
 ```
@@ -437,16 +437,24 @@ data relatively well. Recall is a more important indicator here as
 wanting to ensure more patients with high risk of readmission could be
 found.
 
-get the best threshold for classification (calculate automatically based on ROC):
+Also, try to test how model handles the imbalanced data:
 
 ```{r}
 res_logistic$best_thre
 ```
 
+it shows that the best threshold is around 0.4 - 0.5, we could assume
+that using SMOTE for upsampling is useful for imbalanced data, that the
+best threshold (based on ROC) here is not too biased. With SMOTE which
+adjusts the distribution of the original data, the predicted probability
+is more centred around 0.5. However, as the ability of SMOTE is limited,
+calculating the proper threshold automatically is also needed.
+
 get the summary of the model coefficient:
 
 ```{r paged.print=TRUE}
-summary(res_logistic$model)
+# summary(res_logistic$model)
+xtable::xtable(res_logistic$model |> summary())
 ```
 
 Most of variables are significant after WOE coding, which help transform
@@ -459,16 +467,12 @@ number of diagnoses and medications are related to higher risk of
 readmission. However, race and gender are not essential related to
 readmission.
 
-Also, there are some variables that are not statistically significant, which denotes that it may have the redundancy problem. Variables filtering will be applied later.
-
-We could also analyse the explanatory variables with the explanation of WOE:
-
 ```{r}
 xcol <- c("diag_1", "insulin", "metformin")
 tab_explain_woe[tab_explain_woe$variable_name %in% xcol, ]
 ```
 
-The patients with diagnosis
+also, analyse with the explanation of WOE, the patients with diagnosis
 as metabolic diseases or immunity disorders would have much higher risk
 for readmission than those who have digestive problems. The change in
 dosage of insulin also indicates higher probability of readmission,
@@ -488,11 +492,11 @@ Consider using the Random Forest model to construct the predictor, also
 with the SMOTE methods as tree-based models are sensitive to imbalance
 and calculating proper threshold automatically.
 
-```{r rf, warning=FALSE}
+```{r, warning = FALSE}
 # build rf model
-res_rf <- build_random_forest(diabetic_data_woe,
+res_rf <- build_random_forest(diabetic_data_woe[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221, auto_thre = TRUE, 
                       ntree = 100, maxnodes = 50, mtry = 4)
 ```
 
@@ -527,7 +531,7 @@ Value)
 In this case, set the minimum IV value = 0.01 (`iv_limit` in following
 function)
 
-```{r filter iv}
+```{r}
 # filter with iv
 iv_res <- iv_filter(diabetic_data_woe, iv_limit = .01,
                         ycol = "readmitted", positive = 1)
@@ -544,11 +548,11 @@ get 15 explanatory variables left.
 
 rebuild the model with data after filtering:
 
-```{r rf for iv}
+```{r}
 # build rf model
-res_rf_iv <- build_random_forest(diabetic_data_iv,
+res_rf_iv <- build_random_forest(diabetic_data_iv[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
-                      is_smote = TRUE, seed = 103221, 
+                      is_smote = TRUE, seed = 103221, auto_thre = TRUE, 
                       ntree = 100, maxnodes = 50, mtry = 4)
 ```
 
