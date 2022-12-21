@@ -68,7 +68,7 @@ eval_model <- function(pre, gt) {
 build_kfold <- function(k, n, seed = NA) {
   if (!is.na(seed)) {
     set.seed(seed)
-    }
+  }
   kfold <- sample(1:n, floor(n / k) * k)
   kfold <- matrix(kfold, ncol = k)
   return(kfold)
@@ -87,11 +87,15 @@ build_kfold <- function(k, n, seed = NA) {
 #' @param cv_num for k = cv_num fold validation
 #' @param seed use for spliting train/test data
 #' @param is_smote whether upsampling with smote method for solving imbalance
+#' @param auto_thre whether learn the best thre automatically based on ROC
 #' @param thre classification threshold, when the model gives probability
-#' higher than this value, assign it to the positive, otherwise to negative
+#' higher than this value, assign it to the positive, otherwise to negative. If
+#' it's NA, then use the information from ROC (specificities & sensitivities)
+#' to calculated automatically.
 #'
 #' @return `result` a list with `result$mod` trained model; `result$eval_tab`
-#' the model evaluation result
+#' the model evaluation result; `result$roc_res` the ROC and AUC information;
+#' `result$best_thre` the best threshold used in modeling
 #'
 #' @importFrom pROC roc
 #' @importFrom dplyr group_by summarise
@@ -110,7 +114,10 @@ build_kfold <- function(k, n, seed = NA) {
 build_logistic_regression <- function(data, ycol,
                                      is_kfold = FALSE, cv_num = 10, seed = NA,
                                      is_smote = FALSE,
-                                     thre = NA) {
+                                     auto_thre = TRUE, thre = NA) {
+  if (!is.na(seed)) {
+    set.seed(seed)
+  }
   if (is_kfold) {
     epoch_num <- cv_num
   } else {
@@ -140,9 +147,10 @@ build_logistic_regression <- function(data, ycol,
     mod <- glm(form, data = train, family = binomial(link = "logit"))
     pred_prob <- predict(mod, newdata = test, "response")
     roc0 <- roc(test$readmitted, pred_prob, quiet = TRUE)
-    if (is.na(thre)) {
-      temp <- data |> group_by(.data[[ycol]]) |> dplyr::summarise(n = n())
-      thre <- temp[temp[[ycol]] == 1, ]$n / dim(data)[1]
+    if (is.na(thre) || auto_thre) {
+      max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
+      idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
+      thre <- roc0$thresholds[idx]
     }
     test$pred <- 0
     test$pred[pred_prob > thre] <- 1
@@ -156,14 +164,23 @@ build_logistic_regression <- function(data, ycol,
   }
   if (is_kfold) {
     mod <- glm(form, data = data, family = binomial(link = "logit"))
+    pred_prob <- predict(mod, newdata = data, "response")
+    roc0 <- roc(data$readmitted, pred_prob, quiet = TRUE)
+    if (is.na(thre) || auto_thre) {
+      max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
+      idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
+      thre <- roc0$thresholds[idx]
+    }
   }
   eval_tab <- cbind(c("accuracy", "precision", "F1-score", "recall", "AUC"),
                     round(c(acc, pre, fscore, recall, auc) / epoch_num, 3)) |>
     data.frame()
   colnames(eval_tab) <- c("index", "value")
-  result <- list(eval_tab = eval_tab, model = mod)
+  result <- list(eval_tab = eval_tab, model = mod,
+                 roc_res = roc0, best_thre = thre)
   return(result)
 }
+
 
 
 
@@ -181,14 +198,21 @@ build_logistic_regression <- function(data, ycol,
 #' @param seed use for spliting train/test data
 #' @param is_smote whether upsampling with smote method for solving imbalance
 #' @param thre classification threshold, when the model gives probability
-#' higher than this value, assign it to the positive, otherwise to negative
+#' higher than this value, assign it to the positive, otherwise to negative. If
+#' it's NA, then use the information from ROC (specificities & sensitivities)
+#' to calculated automatically. If it's NA, the threshold would be calculated
+#' automatically based on ROC
+#' @param ntree the hyp for random forest
+#' @param maxnodes the hyp for random forest
+#' @param mtry the hyp for random forest
 #'
 #' @return `result` a list with `result$mod` trained model; `result$eval_tab`
-#' the model evaluation result
+#' the model evaluation result; `result$roc_res` the ROC and AUC information;
+#' `result$best_thre` the best threshold used in modeling
 #'
 #' @importFrom pROC roc
 #' @importFrom dplyr group_by summarise
-#' @importFrom randomForest randomForest
+#' @importFrom randomForest randomForest importance
 #' @importFrom stats as.formula predict
 #'
 #'
@@ -203,8 +227,11 @@ build_logistic_regression <- function(data, ycol,
 #' @export
 build_random_forest <- function(data, ycol,
                                      is_kfold = FALSE, cv_num = 10, seed = NA,
-                                     is_smote = FALSE,
-                                     thre = NA) {
+                                     is_smote = FALSE, thre = NA,
+                                ntree = 100, maxnodes = 50, mtry = NA) {
+  if (!is.na(seed)) {
+    set.seed(seed)
+  }
   if (is_kfold) {
     epoch_num <- cv_num
     } else {
@@ -216,9 +243,10 @@ build_random_forest <- function(data, ycol,
   acc <- 0
   recall <- 0
   fscore <- 0
+  #here!!!!!!!!!!!!!!!!!!!!!!
+  data <- upsample_smote(data, ycol, perc_over = 400)
   if (is_kfold) {
     kfold <- build_kfold(cv_num, dim(data)[1], seed = seed)
-    epoch_num <- cv_num
     }
   for (epoch in 1:epoch_num) {
     if (is_kfold) {
@@ -228,22 +256,28 @@ build_random_forest <- function(data, ycol,
       train <- data
       test <- data
     }
-    if (is_smote) {
-      train <- upsample_smote(train, ycol)
+    # if (is_smote) {
+    #   train <- upsample_smote(train, ycol)
+    # }
+    if (is.na(mtry)) {
+      mtry <- log2(dim(train)[2]) |> floor()
     }
-    mod <- randomForest(form, data = train)
+    mod <- randomForest(form, data = train,
+                        ntree = ntree, maxnodes = maxnodes, mtry = mtry)
+    mod$importance <- randomForest::importance(mod)
     pred_prob <- predict(mod, newdata = test, "prob")[, 2]
     roc0 <- roc(as.ordered(test$readmitted), as.ordered(pred_prob),
-                direction = "<", quiet = TRUE)
+                quiet = TRUE)
     if (is.na(thre)) {
-      temp <- data |> group_by(.data[[ycol]]) |>
-        dplyr::summarise(n = n())
-      thre <- temp[temp[[ycol]] == 1, ]$n / dim(data)[1]
+      max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
+      idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
+      thre <- roc0$thresholds[idx]
     }
     test$pred <- 0
     test$pred[pred_prob > thre] <- 1
     test$pred <- test$pred |> as.factor()
     result <- eval_model(test$pred, test$readmitted)
+
     auc <- auc + roc0$auc
     acc <- acc + result$acc
     pre <- pre + result$pre
@@ -251,13 +285,24 @@ build_random_forest <- function(data, ycol,
     fscore <- result$f1 + fscore
   }
   if (is_kfold) {
+    # data <- upsample_smote(data, ycol)
     mod <- randomForest(form, data = data)
+    mod$importance <- randomForest::importance(mod)
+    pred_prob <- predict(mod, newdata = data, "prob")[, 2]
+    roc0 <- roc(as.ordered(data$readmitted), as.ordered(pred_prob),
+                quiet = TRUE)
+    if (is.na(thre)) {
+      max_temp <- abs(1 - roc0$specificities - roc0$sensitivities)
+      idx <- which(max_temp == max(max_temp), arr.ind = TRUE)
+      thre <- roc0$thresholds[idx]
     }
+  }
   eval_tab <- cbind(c("accuracy", "precision", "F1-score", "recall", "AUC"),
                     round(c(acc, pre, fscore, recall, auc) / epoch_num, 3)) |>
     data.frame()
   colnames(eval_tab) <- c("index", "value")
-  result <- list(eval_tab = eval_tab, model = mod)
+  result <- list(eval_tab = eval_tab, model = mod,
+                 roc_res = roc0, best_thre = thre)
   return(result)
 }
 
@@ -295,8 +340,6 @@ model_predict <- function(data, mod, thre = 0.5, classname = c()) {
     pred_prob <- predict(mod, newdata = data, "response")
   } else if (any(class(mod) == "randomForest")) {
     pred_prob <- predict(mod, newdata = data, "prob")[, 2]
-  } else {
-    stop("model should %in% c(LogisticRegression(glm), RandomForest(rf))")
   }
   pos <- 1
   neg <- 0

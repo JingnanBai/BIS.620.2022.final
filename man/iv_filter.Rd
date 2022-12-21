@@ -4,7 +4,7 @@
 \alias{iv_filter}
 \title{model selection with iv (Information Value)}
 \usage{
-iv_filter(data_woe, iv_limit = 0.02, ycol = "readmitted", positive = "YES")
+iv_filter(data_woe, iv_limit = 0.02, ycol, positive = 1)
 }
 \arguments{
 \item{data_woe}{dataset, need to be data.frame()}
@@ -25,10 +25,12 @@ This function would do model selection based on iv
 }
 \examples{
 data(diabetic_data)
-diabetic_data <- diabetic_data[1:100, c("num_procedures", "readmitted")]
+diabetic_data <- diabetic_data[1:100, c("num_procedures", "num_medications",
+                                        "readmitted")]
 diabetic_data_woe <- build_woe(diabetic_data, ycol = "readmitted",
                                positive = "YES", is_dropsame = TRUE)
-iv_res <- iv_filter(diabetic_data_woe, iv_limit = .02, ycol = "readmitted",
+iv_res <- iv_filter(diabetic_data_woe$newdata,
+                    iv_limit = .01, ycol = "readmitted",
                     positive = "YES")
 diabetic_data_iv <- iv_res$data_iv
 iv_info <- iv_res$iv_info

@@ -11,7 +11,10 @@ build_random_forest(
   cv_num = 10,
   seed = NA,
   is_smote = FALSE,
-  thre = NA
+  thre = NA,
+  ntree = 100,
+  maxnodes = 50,
+  mtry = NA
 )
 }
 \arguments{
@@ -28,11 +31,21 @@ build_random_forest(
 \item{is_smote}{whether upsampling with smote method for solving imbalance}
 
 \item{thre}{classification threshold, when the model gives probability
-higher than this value, assign it to the positive, otherwise to negative}
+higher than this value, assign it to the positive, otherwise to negative. If
+it's NA, then use the information from ROC (specificities & sensitivities)
+to calculated automatically. If it's NA, the threshold would be calculated
+automatically based on ROC}
+
+\item{ntree}{the hyp for random forest}
+
+\item{maxnodes}{the hyp for random forest}
+
+\item{mtry}{the hyp for random forest}
 }
 \value{
 `result` a list with `result$mod` trained model; `result$eval_tab`
-the model evaluation result
+the model evaluation result; `result$roc_res` the ROC and AUC information;
+`result$best_thre` the best threshold used in modeling
 }
 \description{
 This function could be use for training a random forest model

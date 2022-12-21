@@ -16,7 +16,8 @@ build_woe(data, ycol = "readmitted", positive = "YES", is_dropsame = TRUE)
 \item{is_dropsame}{if TRUE, drop the constant columns after transformation}
 }
 \value{
-processed dataset (data.frame())
+`res`, a list with woe_bins = bins, newdata = processed
+dataset (data.frame())
 }
 \description{
 This function would do WOE transformation for given data

@@ -11,6 +11,7 @@ build_logistic_regression(
   cv_num = 10,
   seed = NA,
   is_smote = FALSE,
+  auto_thre = TRUE,
   thre = NA
 )
 }
@@ -27,12 +28,17 @@ build_logistic_regression(
 
 \item{is_smote}{whether upsampling with smote method for solving imbalance}
 
+\item{auto_thre}{whether learn the best thre automatically based on ROC}
+
 \item{thre}{classification threshold, when the model gives probability
-higher than this value, assign it to the positive, otherwise to negative}
+higher than this value, assign it to the positive, otherwise to negative. If
+it's NA, then use the information from ROC (specificities & sensitivities)
+to calculated automatically.}
 }
 \value{
 `result` a list with `result$mod` trained model; `result$eval_tab`
-the model evaluation result
+the model evaluation result; `result$roc_res` the ROC and AUC information;
+`result$best_thre` the best threshold used in modeling
 }
 \description{
 This function could be use for training a logistic regression

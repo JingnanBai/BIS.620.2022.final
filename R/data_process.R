@@ -96,8 +96,8 @@ function(data, mark_list = c("?", "unknown", "invalid", "not available",
 #'              fill_cre_num = "median")
 #' @export
 missing_explore <-
-  function(x, is_drop = TRUE, upper_pro = 0.95, lower_pro = 0.04,
-              is_fill = TRUE, fill_mark_fac = "others",
+  function(x, is_drop = FALSE, upper_pro = 0.95, lower_pro = 0.04,
+              is_fill = FALSE, fill_mark_fac = "others",
            fill_cre_num = "medium") {
   na_name <- colnames(x)[apply(x, 2,
                                function(x) {
@@ -129,7 +129,7 @@ missing_explore <-
     print(paste("auto_process done, with ",
                 round((1 - dim(x)[2] / oridim[2]) * 100, 3),
           "% columns deleted and ",
-          round((length(dropcol) / oridim[2]) * 100, 3),
+          round((1 - dim(x)[1] / oridim[1]) * 100, 3),
           "% rows dropped", sep = ""))
   }
   if (is_fill) {
@@ -142,7 +142,9 @@ missing_explore <-
           x[coln] <- replace_na(x[[coln]], mean(x[[coln]]))
           }
       } else {
-        x[coln] <- replace_na(x[[coln]], fill_mark_fac)
+        x[, coln] <- x[, coln] |> as.character()
+        x[, coln] <- replace_na(x[[coln]], fill_mark_fac)
+        x[, coln] <- x[, coln] |> as.factor()
         }
     }
   }

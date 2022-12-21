@@ -1,0 +1,689 @@
+---
+title: "BIS620 2022 final: prediction for diabetic patients readmission"
+# output: rmarkdown::html_vignette
+output:
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float: true
+    df_print: paged
+vignette: >
+  %\VignetteIndexEntry{BIS620_2022_final}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+<br>
+
+**Jingnan Bai (NetID: jb3633)**
+
+<br>
+
+```{r setup}
+library(BIS620.2022.final)
+```
+
+## 1.Background and Motivation
+
+Diabetes is a non-recoverable disease that requires lifelong treatment
+once diagnosed. Due to the long disease cycle, it is prone to recurrence
+and always needs patients to be readmitted to the hospital multiple
+times. However, frequent readmission can put significant pressure on
+healthcare resources, while it is also an important indicator that shows
+the quality of care provided by healthcare facilities. Based on that, it
+is essential to evaluate and predict the risk of readmission while
+exploring the factors contributing to it.
+
+This project would focus on predicting which patient would be
+readmitted, with the diabetes data that represents the 10 years clinical
+care record for diabetic patients at 130 US hospitals. Taking it as the
+primary research question, this project would also conduct data
+cleaning, exploration and visualization, analyse the relationship
+between various factors and the readmission risk of diabetic patients,
+in order to better understand the data and give sensible prediction.
+
+<br>
+
+<br>
+
+## 2. Data Description and cleaning
+
+All of analysis would based on the diabetic patients readmission data.
+It has 66221 observations, 48 explanatory variables, also one response
+variable `readmitted` denotes whether the patient is readmitted to the
+hospital within 30 days. Since there are too many variables, please
+refer to Apendix for detailed variable description.
+
+load the data from the package:
+
+```{r paged.print=TRUE}
+data("diabetic_data")
+head(diabetic_data, 5)
+```
+
+Since the original data comes from the Health Facts database, there are
+a large number of token representations (e.g., adoption_type_id = 1 for
+"emergency"). Replacing these marks with its actual meaning with the
+corresponding mapping table provided by the database. Following function
+could be used for any similar id - description mapping.
+
+```{r}
+data("ids_map")
+diabetic_data <- data_ids_map(diabetic_data, ids_map)
+```
+
+also, there are three variables `diag_1`, `diag_2`, `diag_3` refers to
+the ICD-9 coding, which has too much unique values (more than 800), try
+to map them with the primary category of the corresponding disease.
+
+Similarly, following function in the package could be used for any ICD-9
+mapping.
+
+```{r, warning = FALSE}
+data(icd9_map)
+# diabetic_data <- encode_icd9(x = diabetic_data,
+#                              data_icd = icd9_map,
+#                              maplist = c("diag_1", "diag_2", "diag_3"))
+```
+
+<br>
+
+<br>
+
+### 2.1 Data cleaning
+
+First of all, as the data here has possible missing values, outlier and
+extreme imbalanced variables, try to do data cleaning before conducting
+analysis.
+
+<br>
+
+#### 2.1.1 dealing with missing value
+
+Noting the presence of a large number of symbols such as "?" and
+"unknown" in the data, converting these marks to `NA` to mark missing
+values with the function `replace_missing_dataset`
+
+```{r}
+# map NA
+mark_list <- c("?", "unknown", "invalid", "not available", "not mapped",
+              "null", "none")
+diabetic_data <- replace_missing_dataset(diabetic_data, mark_list = mark_list)
+
+diabetic_ori <- diabetic_data
+```
+
+explore the missing proportion and possible missing pattern with the
+function `missing_explore`, which would give `missing_table` to show the
+proportion and `pattern_plot` to show the missing pattern
+
+```{r}
+# knitr::opts_chunk$set(fig.width=5, fig.height=4) 
+res <- missing_explore(diabetic_data)
+# show the missing proportion
+res$missing_table
+```
+
+```{r fig.height=8, fig.width=8, out.height="60%", out.width="60%"}
+# show the missing pattern
+plot(res$pattern_plot, oma = c(12, 3, 2, 2))
+```
+
+<br>
+
+based on the result, 8 of 47 explanatory variables have missing value.
+Based on the plot above, there is no significant missing pattern (such
+as some variables are always missing together as a pair). Assume that
+there is no correlation between the missing value, i.e. missing at
+random (MAR).
+
+There are some columns have too many missing values while some only has
+few observations missing.
+
+considering:
+
+-   dropping the columns with missing proportion \>= 94%
+-   dropping observations which is missing with variables that only have
+    \<=4% missing.
+-   otherwise, as it is missing at random here, using a new level named
+    "other" to fill the missing for factor variables while using median
+    to fill for numerical columns.
+
+```{r}
+res <- missing_explore(diabetic_data,
+            is_drop = TRUE, upper_pro = 0.94, lower_pro = 0.04,
+            is_fill = TRUE, fill_mark_fac = "others", fill_cre_num = "median")
+diabetic_data <- res$newdata
+```
+
+based on the output, there are only 4% (2) columns and less than 3% rows
+are dropped, the loss of data is acceptable.
+
+<br>
+
+#### 2.1.2 outlier exploration
+
+Considering the relatively large number of variables, it is complicated
+to check the outlier one by one, so here giving a rough exploration of
+outlier with the following definition:
+
+-   if an obs. is \<= Q1-(1.5)IQR or \>=Q3+(1.5)IQR, define it as "away
+    from the whole group"
+-   if one variable has only small amount of obs away from the whole
+    group (e.g. 1%), set these obs as the outliers for this variable.
+
+```{r fig.height=6, fig.width=6, out.height="50%", out.width="50%"}
+diabetic_data <- outlier_explore(diabetic_data, outlier_prop = .01,
+                                 is_drop = FALSE, is_plot = TRUE)
+```
+
+We could assume that these outliers are not recorded wrongly and should
+be considered reasonable. Set `is_drop = FALSE` and keep these
+observations.
+
+<br>
+
+#### 2.1.3 drop the extreme imbalance columns
+
+A variable is considered to be extremely imbalanced if, more than 98% of
+the observations are concentrated at a certain level. The extremely
+imbalanced variables are automatically checked and removed:
+
+```{r paged.print=TRUE}
+diabetic_data <- extreme_imbalance_col(diabetic_data, extreme_prop = .98,
+                                 is_drop = TRUE, is_table = FALSE)
+# For concise output, set is_table = FALSE
+```
+
+In summary, the basic data cleaning is finished. 64359 observations and
+29 explanatory variables (with one response variables) are left.
+
+<br>
+
+<br>
+
+
+
+### 2.2 Data Encoding with WOE
+
+WOE (weight of evidence) is a supervised coding of the variables and is
+often used in financial risk models. After discretizing the data into
+bins, WOE values can be computed for each group to represent the
+difference between "the proportion of the target customers in the
+current group to all target customers" and "the proportion of
+non-target customers in the current group to all non-target customers".
+In this project, readmitted patients are defined as target customers.
+
+Let $y_{i}$ denote the number of target customers in group $i$ (i.e.,
+the number of readmitted patients) and $n_i$ denote the number of
+non-target customers in group $i$ (i.e., the number of non-readmitted
+patients), $y_T$, $n_T$ denote the total number of target customers and
+non-target customers in data. The WOE value for group $i$ at this point
+is calculated as follows:
+$$WOE_{i} = \ln{\frac{py_i}{pn_i}} = \ln{\frac{y_i/y_T}{n_i/n_T}}$$
+
+First, considering the categorical variables in the data always have too
+many levels, it always leads to difficulties in modeling if treating them directly as dummy variables. WOE coding always implied with tree-based binning, it is a good way to combine some of the levels together. 
+
+Also, since some models only support modeling with numerical variables, processing categorical variables as WOE codes also provides more options for
+subsequent modeling.
+
+Besides, considering the interpretability, WOE could be mapped to
+original values easily, while the WOE values themselves can reflect the
+relationship between each grouping and response variable. After coding,
+the model can still maintain good interpretability and will not affect
+the subsequent analysis.
+
+Using the function `build_woe` below to apply WOE coding, while using `get_woe_explain` to save the mapping relationship of WOE coding and original value for the analysis later.
+
+```{r}
+# WOE transformation
+res_woe <- build_woe(diabetic_data, ycol = "readmitted",
+                               positive = "YES", is_dropsame = TRUE)
+diabetic_data_woe <- res_woe$newdata
+
+# get the mapping information for explanation later.
+tab_explain_woe <- get_woe_explain(diabetic_data_woe, diabetic_data)
+```
+
+<br>
+
+<br>
+
+### 2.3 Upsampling with SMOTE
+
+Also check the response variable. It is an imbalanced classification as readmitted : non-readmitted \approx 1:5$.
+
+consider using SMOTE methods to do upsampling to balance the data.
+
+SMOTE (Synthetic Minority Oversampling Technique) using KNNs idea to
+analyze the minority class and generate new samples to achieve an
+overall balance. following function would do upsampling with SMOTE and calculate the appropriate proportion needed for new cases generation automatically.
+
+```{r}
+# codes for sample data to show the function which conduct SMOTE, it will be combined with the modelling function later
+sample_smote <- upsample_smote(diabetic_data_woe[1:100, ], ycol = "readmitted")
+
+summary(diabetic_data_woe[1:100, "readmitted"])
+summary(sample_smote$readmitted)
+```
+
+Data becomes more balanced after SMOTE.
+
+<br>
+
+<br>
+
+## 3. Analysis and Visualization
+
+### 3.1 EDA and Visualization
+
+firstly, try to check the relationship between the categorical variables and
+readmission. The following function `plot_mosaic` would give the mosaic plot for every variable in `xcol` v.s. `ycol = readmitted`
+
+```{r fig.height=7, fig.width=9, warning=FALSE, out.width="75%", out.height="75%"}
+xcol <- c("race", "payer_code", "age", "insulin", "change", "max_glu_serum")
+plot_mosaic(diabetic_ori, ycol = "readmitted", xcol = xcol, ncol = 3)
+```
+
+It shows that when age is increasing, the risk of
+readmission will drop first, then increase after 60 years old, which means that people at middle age has the relatively lower risk. 
+
+Also, based on `race`, some vulnerable groups such as Hispanic have lower rate of readmission surprisingly, that may because they can't afford the cost and time of repeated hospital admissions, or they are less concerned about their health and are reluctant to take treatment for a long time. This assumption may  be supported by `payer_code`, which indicates how the patients pay during treatment. It also suggests that readmission is related to the different financial situation.
+
+The medications during the admission and laboratory test results show significant relationship with the readmission. It
+shows that when there is a change in the dosage (up or down) of
+`insulin`, the risk of readmission increases. That may because it
+indicates the unstable disease development, which contributes to the
+readmission. This assumption is corresponding to the pattern showed by`change` variable. However, the test result of glucose serum `max_glu_serum` shows when the value is high, it leads to significant higher risk of readmission, while A1C value `A1C result` dose not show significant difference.
+
+
+Besides, check the relationship between the numerical variables and
+readmission. Similarly, the following function would give a histogram for each variable in `xcol_num` v.s. readmitted.
+
+```{r fig.height=8, fig.width=8, out.height="65%", out.width="65%"}
+xcol_num <- c("time_in_hospital", "num_lab_procedures", "num_medications", 
+              "number_inpatient", "number_diagnoses")
+plot_comparehist(diabetic_ori, "readmitted", xcol_num, ncol = 2, bins = 10)
+```
+
+It shows that the number of hospital visiting, lab test and medications are
+related to readmission, which is intuitive that the patient who has the
+need and willing to take more check and receive more treatment is more
+likely to be readmitted. Also, when the patient has more diagnoses
+`number_diagnoses`, which means more other diseases at the same time,
+the situation could be worse. The number of inpatient visits of the
+patient `number_inpatient` is also an important indicator that it
+suggests a worse condition indirectly.
+
+<br>
+
+### 3.2 explaination with WOE
+
+Moreover, give more exploration with the WOE coding results above.
+
+On the one hand, as WOE combine different levels into different groups, the WOE value itself can be a measurement of
+the group's ability to identify readmitted patients: if there is no
+difference between the proportion within the groups and the proportion
+of the overall sample, then a WOE value is equal to $\log{1} = 0$,
+indicating that this group may not related to readmission; similarly, when the
+WOE value is far from 0, it always indicates a stronger ability of the group for discrimination.
+
+On the other hand, a positive or negative WOE can help to understand the
+tendency of patients in the group to be more or less likely to be
+readmitted: if the WOE value is negative, the group is less likely to be
+readmitted than the overall sample, vice versa.
+
+based on the explanation table calculated by the functions above:
+
+```{r}
+temp_col <- c("age", "number_diagnoses")
+tab_explain_woe[tab_explain_woe$variable_name %in% temp_col, ]
+```
+
+It shows that the people at middle age is least likely to be readmitted
+(with the smallest value which is negative). As the age increasing, the
+risk of readmission is decreasing first, than increasing after 60, which denotes a
+"non-linear" relationship with readmission. But after transforming with WOE,
+the woe_value could be more "linear" to the readmission, when applying
+some linear model such as logistic regression, WOE coding could help the
+model to fit better.
+
+Also, the number of diagnoses also shows significant relationship with
+readmission. Based on the WOE value, more diagnosed disease, the risk of
+being readmitted would increase. Also, as the woe_value is higher than
+the value of `Age` above (as 0.17 for number of diagnoses \>= 9, while
+0.1 for age \>=70), it could be said that the number of diagnoses is a
+more important variable than age, which could provide more information
+about readmission.
+
+Besides, as the number of diagnoses is a numeric variable here, it is
+divided into different bins by WOE. Similar to the idea of regression
+splines, it could also help model the non-linear relationship.
+
+```{r, fig.width = 10, fig.height = 8, out.height="70%", out.width="70%"}
+collist <- c("age", "number_diagnoses", "number_inpatient", "number_emergency")
+get_woe_plot(res_woe$woe_bins, xcol = collist, ncol = 2)
+```
+
+<br>
+
+<br>
+
+## 4. Modeling
+
+<br>
+
+before modeling, prepare the response variable to 0/1
+
+```{r}
+# transform the categorical variables to factor
+diabetic_data <- format_factor_dataset(diabetic_data)
+# map the target to 0/1
+diabetic_data_woe <- diabetic_data_woe |>
+  ycol_mapped01(ycol = "readmitted", positive = "YES")
+summary(diabetic_data_woe$readmitted)
+```
+
+### 4.1 Model with explainability: Logistic Regression
+
+Firstly, fit a Logistic regression model with prepared data (with WOE
+coding)
+
+The function below would work as : - split the data to train set and
+test set (set `is_kfold` to TRUE, and `cv_num = 10` to do 10-fold
+validation. Refer to document for more information) - for each epoch in
+cross validation, do SMOTE sampling for the training data (if is_smote
+== TRUE) - fit the Logistic Regression model, learn the best threshold
+for classification by ROC information (calculated with specificity and
+sensitivity) - predict on the test data (with no SMOTE, to test the
+model's ability about handling imbalance), set the threshold probability
+to different class with the best threshold learned above automatically -
+evaluate the result and give the result table
+
+```{r}
+# build logistic model
+res_logistic <- build_logistic_regression(diabetic_data_woe[1:1000, ],
+                      ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
+                      is_smote = TRUE, seed = 103221, auto_thre = TRUE)
+```
+
+get the evaluation result with 10-fold validation, also print the AUC
+plot:
+
+```{r fig.height=5, fig.width=5, out.height="50%", out.width="50%"}
+res_logistic$eval_tab
+```
+```{r}
+plot(res_logistic$roc_res, print.auc=TRUE, auc.polygon=TRUE,
+           grid.col=c("green", "red"), max.auc.polygon=TRUE,
+           auc.polygon.col="skyblue", print.thres = T)
+```
+
+
+based on the result above with cross validation, AUC reaches 0.7 with
+recall about 0.65, which denotes that the simple logistic model fits
+data relatively well. Recall is a more important indicator here as
+wanting to ensure more patients with high risk of readmission could be
+found.
+
+Also, try to test how model handles the imbalanced data:
+
+```{r}
+res_logistic$best_thre
+```
+
+it shows that the best threshold is around 0.4 - 0.5, we could assume
+that using SMOTE for upsampling is useful for imbalanced data, that the
+best threshold (based on ROC) here is not too biased. With SMOTE which
+adjusts the distribution of the original data, the predicted probability
+is more centred around 0.5. However, as the ability of SMOTE is limited,
+calculating the proper threshold automatically is also needed.
+
+get the summary of the model coefficient:
+
+```{r paged.print=TRUE}
+summary(res_logistic$model)
+# xtable::xtable(res_logistic$model |> summary())
+```
+
+Most of variables are significant after WOE coding, which help transform
+the non-linear relationship to "linear" one which could be captured by
+linear model such as logistic regression.
+
+Based on the coefficients here, as for numerical variables, more lab
+tests, more non-patients visits and emergency visits, also the larger
+number of diagnoses and medications are related to higher risk of
+readmission. However, race and gender are not essential related to
+readmission.
+
+```{r}
+xcol <- c("diag_1", "insulin", "metformin")
+tab_explain_woe[tab_explain_woe$variable_name %in% xcol, ]
+```
+
+also, analyse with the explanation of WOE, the patients with diagnosis
+as metabolic diseases or immunity disorders would have much higher risk
+for readmission than those who have digestive problems. The change in
+dosage of insulin also indicates higher probability of readmission,
+whether up or down. However, for metformin, lower doses and stopping are
+associated with readmission.
+
+<br>
+
+<br>
+
+### 4.2 model for prediction: Random Forest
+
+As the fitting ability of the Logistic regression is limited, try to use
+other methods for building the predictor.
+
+Consider using the Random Forest model to construct the predictor, also
+with the SMOTE methods as tree-based models are sensitive to imbalance
+and calculating proper threshold automatically.
+
+```{r rf, warning=FALSE}
+# build rf model
+res_rf <- build_random_forest(diabetic_data_woe[1:1000, ],
+                      ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
+                      is_smote = TRUE, seed = 103221, 
+                      ntree = 100, maxnodes = 50, mtry = 4)
+```
+
+```{r}
+res_rf$eval_tab
+```
+
+Random Forest model gets higher AUC around 0.87 that it could fit the
+target much better than Logistic Regression. While it gets much higher
+recall (0.74), which denotes that Random Forest could be more helpful
+for prediction in this case that missing readmitted patients is more
+costly.
+
+Also, use random forest to give the importance of different variables.
+
+```{r paged.print=TRUE}
+impt <- res_rf$model$importance
+impt <- impt[order(impt[, "MeanDecreaseGini"], decreasing = TRUE), ] |> 
+  data.frame()
+colnames(impt) <- c("MeanDecreaseGini")
+impt
+```
+
+The result by random forest is corresponding to the visualization and
+analysis with logistic regression.
+
+Moreover, noted that training a random forest model is quite slow,
+especially when the number of variables is large. Based on the WOE, try
+to do variables filter for a more concise model with IV (Information
+Value)
+
+In this case, set the minimum IV value = 0.01 (`iv_limit` in following
+function)
+
+```{r filter iv}
+# filter with iv
+iv_res <- iv_filter(diabetic_data_woe, iv_limit = .01,
+                        ycol = "readmitted", positive = 1)
+diabetic_data_iv <- iv_res$data_iv
+iv_info <- iv_res$iv_info
+
+dim(diabetic_data_iv)
+
+# get IV value for each variables: 
+# print(iv_info)
+```
+
+get 15 explanatory variables left.
+
+rebuild the model with data after filtering:
+
+```{r rf for iv}
+# build rf model
+res_rf_iv <- build_random_forest(diabetic_data_iv[1:1000, ],
+                      ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
+                      is_smote = TRUE, seed = 103221, 
+                      ntree = 100, maxnodes = 50, mtry = 4)
+```
+
+```{r}
+res_rf_iv$eval_tab
+```
+
+As there are only 15 explanatory variables left after filtering
+(compared with 29 before) the model is simplified with nearly half of
+them are removed. However, the model could still keep a relatively high
+AUC (from 0.868 before to 0.85 now) and even better performance in
+recall, and could be trained much faster. We could believe that
+filtering with IV is a good way for simplification.
+
+<br>
+
+### 4.2 demo: prediction for new data
+
+Besides, this package also provides the following function
+`model_predict` as a simple way to use the trained model and do the
+prediction.
+
+Use it to predict the 10 patients chosen randomly from the data, with
+the models trained above:
+
+```{r paged.print=TRUE}
+
+#### demo for building predictor for new data ####
+
+# get 10 patients randomly for prediction
+set.seed("2022620")
+idx <- sample(1:dim(diabetic_data_woe)[1], 10)
+true_label <- diabetic_data[idx, "readmitted"]
+data <- diabetic_data_woe[idx,
+                    -which(colnames(diabetic_data_woe) %in% c("readmitted"))]
+lr_mod <- res_logistic$model
+rf_mod <- res_rf$model
+rf_mod_iv <- res_rf_iv$model
+
+# do predict with functions below in BIS620.2022.final package:
+pred_lr <- model_predict(data, res_logistic$model, 
+                         thre = res_logistic$best_thre, 
+                         classname = c("YES", "NO"))
+pred_rf <- model_predict(data, res_rf$model, thre = res_rf$best_thre, 
+                         classname = c("YES", "NO"))
+pred_rf_iv <- model_predict(data, res_rf_iv$model, thre = res_rf_iv$best_thre, 
+                         classname = c("YES", "NO"))
+
+# show the result
+predict_sample <- true_label |> data.frame()
+predict_sample$pred_lr <- pred_lr
+predict_sample$pred_rf <- pred_rf
+predict_sample$pred_rf_iv <- pred_rf_iv
+colnames(predict_sample) <- c("true label", 
+                              "pred_Logistic", 
+                              "pred_RF", 
+                              "pred_RF+IV")
+
+predict_sample
+
+```
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+
+---
+
+## Apendix：diabetic dataset - detailed description
+
+| Feature name             | description & values                                                                                                                                                                                                                         |
+|------------------------------------|------------------------------------|
+| readmitted               | Days to inpatient readmission. Values: "YES" if the patientwas readmitted in less than 30 days and "No" for no record of readmission.                                                                                                        |
+| race                     | Values: Caucasian, Asian, African American, Hispanic, and other                                                                                                                                                                              |
+| gender                   | Values: male, female, and unknown/invalid                                                                                                                                                                                                    |
+| age                      | Grouped in 10-year intervals: `[0, 10)`, `[10, 20)`, ..., `[90, 100)`                                                                                                                                                                        |
+| weight                   | Weight in pounds                                                                                                                                                                                                                             |
+| admission_type_id        | Integer identifier corresponding to 9 distinct values,for example, emergency, urgent, elective, newborn, and not available                                                                                                                   |
+| discharge_disposition_id | Integer identifier corresponding to 29 distinctvalues, for example, discharged to home, expired, and not available                                                                                                                           |
+| admission_source_id      | Integer identifier corresponding to 21 distinctvalues, for example, physician referral, emergency room, and transfer from ahospital                                                                                                          |
+| time_in_hospital         | Integer number of days between admission and discharge                                                                                                                                                                                       |
+| payer_code               | Integer identifier corresponding to 23 distinct values,for example, Blue Cross, Blue Shield, Medicare, and self-pay                                                                                                                          |
+| medical_specialty        | Integer identifier of a specialty of the admittingphysician, corresponding to 84 distinct values, for example, cardiology, internalmedicine, family or general practice, and surgeon                                                         |
+| num_lab_procedures       | Number of lab tests performed during the encounter                                                                                                                                                                                           |
+| num_procedures           | Number of procedures (other than lab tests) performedduring the encounter                                                                                                                                                                    |
+| num_medications          | Number of distinct generic names administered duringthe encounter                                                                                                                                                                            |
+| number_outpatient        | Number of outpatient visits of the patient in the yearpreceding the encounter                                                                                                                                                                |
+| number_emergency         | Number of emergency visits of the patient in the yearpreceding the encounter                                                                                                                                                                 |
+| number_inpatient         | Number of inpatient visits of the patient in the yearpreceding the encounter                                                                                                                                                                 |
+| diag_1                   | The primary diagnosis (coded as first three digits of ICD9);848 distinct values                                                                                                                                                              |
+| diag_2                   | Secondary diagnosis (coded as first three digits of ICD9);923 distinct values                                                                                                                                                                |
+| diag_3                   | Additional secondary diagnosis (coded as first three digits ofICD9); 954 distinct values                                                                                                                                                     |
+| number_diagnoses         | Number of diagnoses entered to the system                                                                                                                                                                                                    |
+| max_glu_serum            | Indicates the range of the result or if the test was nottaken. Values: "\>200," "\>300," "normal," and "none" if not measured                                                                                                                |
+| A1Cresult                | Indicates the range of the result or if the test was not taken.Values: "\>8" if the result was greater than 8%, "\>7" if the result was greaterthan 7% but less than 8%, "normal" if the result was less than 7%, and "none"if not measured. |
+| metformin                | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| repaglinide              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| nateglinide              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| chlorpropamide           | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glimepiride              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| acetohexamide            | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glipizide                | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glyburide                | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| tolbutamide              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| pioglitazone             | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| rosiglitazone            | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| acarbose                 | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| miglitol                 | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| troglitazone             | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| tolazamide               | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| examide                  | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| citoglipton              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| citoglipton              | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| insulin                  | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glyburide.metformin      | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glipizide.metformin      | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| glimepiride.pioglitazone | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| metformin.rosiglitazone  | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| metformin.pioglitazone   | Down or Steady or Up, or No denotes no treatment                                                                                                                                                                                             |
+| change                   | Indicates if there was a change in diabetic medications(either dosage or generic name). Values: "change" and "no change"                                                                                                                     |
+| diabetesMed              | Indicates if there was any diabetic medication prescribed.Values: "yes" and "no"|
+
+<br>
+
+<br>
+
+<br>

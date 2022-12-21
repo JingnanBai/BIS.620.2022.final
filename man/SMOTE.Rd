@@ -7,7 +7,7 @@
 modified based on L. torgo, Feb 2010, from `DMwR` package
 }
 \usage{
-smote(data, ycol, perc_over = 500, k = 5, perc_under = 200)
+smote(data, ycol, perc_over = 500, k = 5)
 }
 \arguments{
 \item{data}{the original training set (with the unbalanced distribution)}
@@ -20,9 +20,6 @@ for a randomly selected perc_over of the rare cases}
 
 \item{k}{is the number of neighbours to consider as the pool from where
 the new examples are generated}
-
-\item{perc_under}{is the number of "normal" cases that are randomly selected
-for each smoted case}
 }
 \value{
 processed dataset (data.frame())
@@ -35,5 +32,5 @@ given sample percent to solve the imbalance problem
 data <- data.frame(y=rep(as.factor(c('Yes', 'No')), times=c(90, 10)),
                  x1=rnorm(100),
                  x2=rnorm(100))
-newdata <- smote(data, "y", perc_over = 500, k = 5, perc_under = 200)
+newdata <- smote(data, "y", perc_over = 500, k = 5)
 }

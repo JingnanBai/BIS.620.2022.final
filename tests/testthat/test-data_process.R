@@ -52,7 +52,8 @@ test_that(
   {
     data("diabetic_data")
     diabetic_data <- replace_missing_dataset(diabetic_data)
-    res <- missing_explore(diabetic_data[1:100, ], is_fill = TRUE)
+    res <- missing_explore(diabetic_data[1:100, ],
+                           is_fill = TRUE, is_drop = TRUE)
     expect_true(class(res$newdata) == "data.frame")
   }
 )

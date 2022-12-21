@@ -4,12 +4,17 @@
 \alias{upsample_smote}
 \title{upsampling with smote for given dataset}
 \usage{
-upsample_smote(data_forsample, ycol)
+upsample_smote(data_forsample, ycol, perc_over = NA)
 }
 \arguments{
 \item{data_forsample}{dataset need to do upsampling, need to be data.frame}
 
 \item{ycol}{the colname for the target column}
+
+\item{perc_over}{the upsampling percent for SMOTE, is the 100 * number of
+new cases (smoted cases) generated for each rare case. If perc_over < 100 a
+single case is generated uniquely for a randomly selected perc_over of the
+rare cases}
 }
 \value{
 processed dataset (data.frame())

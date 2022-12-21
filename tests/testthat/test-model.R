@@ -18,7 +18,7 @@ test_that(
                              "readmitted", is_kfold = TRUE,
                              cv_num = 2, seed = 103221,
                              is_smote = TRUE, thre = 0.4)
-    expect_true(length(res) == 2)
+    expect_true(length(res) == 4)
   }
 )
 
@@ -31,7 +31,7 @@ test_that(
     res <- build_logistic_regression(diabetic_data,
                                     "readmitted", is_kfold = FALSE,
                                     cv_num = 2, seed = 103221, is_smote = TRUE)
-    expect_true(length(res) == 2)
+    expect_true(length(res) == 4)
   }
 )
 
@@ -45,7 +45,7 @@ test_that(
                               "readmitted", is_kfold = TRUE,
                               cv_num = 2, seed = 103221,
                               is_smote = TRUE, thre = 0.2)
-    expect_true(length(res) == 2)
+    expect_true(length(res) == 4)
   }
 )
 
@@ -58,7 +58,7 @@ test_that(
     res <- build_random_forest(diabetic_data,
                               "readmitted", is_kfold = FALSE,
                               cv_num = 2, seed = 103221, is_smote = TRUE)
-    expect_true(length(res) == 2)
+    expect_true(length(res) == 4)
   }
 )
 

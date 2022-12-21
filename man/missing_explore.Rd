@@ -6,10 +6,10 @@
 \usage{
 missing_explore(
   x,
-  is_drop = TRUE,
+  is_drop = FALSE,
   upper_pro = 0.95,
   lower_pro = 0.04,
-  is_fill = TRUE,
+  is_fill = FALSE,
   fill_mark_fac = "others",
   fill_cre_num = "medium"
 )

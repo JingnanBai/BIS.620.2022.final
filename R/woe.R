@@ -7,7 +7,8 @@
 #' @param positive the level in target y which denotes the positive class
 #' @param is_dropsame if TRUE, drop the constant columns after transformation
 #'
-#' @return processed dataset (data.frame())
+#' @return `res`, a list with woe_bins = bins, newdata = processed
+#' dataset (data.frame())
 #' @importFrom dplyr select
 #' @importFrom scorecard woebin woebin_ply
 #' @importFrom tidyr all_of
@@ -40,7 +41,8 @@ build_woe <- function(data, ycol = "readmitted", positive = "YES",
       print(paste("delete", length(same_list), "constant columns"))
       }
   }
-  return(data_woe)
+  res <- list(woe_bins = bins, newdata = data_woe)
+  return(res)
 }
 
 
@@ -110,22 +112,23 @@ get_woe_explain <- function(data_woe, data) {
 #'
 #' @examples
 #' data(diabetic_data)
-#' diabetic_data <- diabetic_data[1:100, c("num_procedures", "readmitted")]
+#' diabetic_data <- diabetic_data[1:100, c("num_procedures", "num_medications",
+#'                                         "readmitted")]
 #' diabetic_data_woe <- build_woe(diabetic_data, ycol = "readmitted",
 #'                                positive = "YES", is_dropsame = TRUE)
-#' iv_res <- iv_filter(diabetic_data_woe, iv_limit = .02, ycol = "readmitted",
+#' iv_res <- iv_filter(diabetic_data_woe$newdata,
+#'                     iv_limit = .01, ycol = "readmitted",
 #'                     positive = "YES")
 #' diabetic_data_iv <- iv_res$data_iv
 #' iv_info <- iv_res$iv_info
 #' @export
-iv_filter <- function(data_woe, iv_limit = 0.02, ycol = "readmitted",
-                      positive = "YES") {
-  iv_chart <- iv(data_woe, y = "readmitted", positive = "YES")
+iv_filter <- function(data_woe, iv_limit = 0.02, ycol, positive = 1) {
+  iv_chart <- iv(data_woe, y = ycol, positive = positive)
   iv_chart <- iv_chart |>
     data.frame() |>
     dplyr::mutate(info_value = info_value |> round(4))
-  data_iv <- var_filter(data_woe, y = "readmitted", iv_limit = iv_limit,
-                        positive = "YES")
+  data_iv <- var_filter(data_woe, y = ycol, iv_limit = iv_limit,
+                        positive = positive)
   data_iv[, ycol] <- data_woe[[ycol]] |> as.factor()
   out <- list(data_iv = data_iv, iv_info = iv_chart)
   return(out)

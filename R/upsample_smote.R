@@ -6,6 +6,10 @@
 #' calculating appropriate over percentage automatically
 #' @param data_forsample dataset need to do upsampling, need to be data.frame
 #' @param ycol the colname for the target column
+#' @param perc_over the upsampling percent for SMOTE, is the 100 * number of
+#' new cases (smoted cases) generated for each rare case. If perc_over < 100 a
+#' single case is generated uniquely for a randomly selected perc_over of the
+#' rare cases
 #'
 #' @return processed dataset (data.frame())
 #' @importFrom dplyr group_by summarise n
@@ -17,12 +21,13 @@
 #'                  x2=rnorm(100))
 #' data_smote <- upsample_smote(data, "y")
 #' @export
-upsample_smote <- function(data_forsample, ycol) {
-  perc_over <- data_forsample |>
-    group_by(.data[[ycol]]) |>
-    dplyr::summarise(n = n())
-  perc_over <- 100 * ((max(perc_over$n) / min(perc_over$n))
-                      |> ceiling())
+upsample_smote <- function(data_forsample, ycol, perc_over = NA) {
+  if (is.na(perc_over)) {
+    perc_over <- data_forsample |>
+      group_by(.data[[ycol]]) |>
+      dplyr::summarise(n = n())
+    perc_over <- 100 * ((max(perc_over$n) / min(perc_over$n) - 1) |> floor())
+  }
   data_smote <- smote(data_forsample, ycol, perc_over = perc_over)
   return(data_smote)
 }
@@ -41,8 +46,6 @@ upsample_smote <- function(data_forsample, ycol) {
 #' for a randomly selected perc_over of the rare cases
 #' @param k is the number of neighbours to consider as the pool from where
 #' the new examples are generated
-#' @param perc_under is the number of "normal" cases that are randomly selected
-#' for each smoted case
 #'
 #' @return processed dataset (data.frame())
 #'
@@ -50,9 +53,9 @@ upsample_smote <- function(data_forsample, ycol) {
 #' data <- data.frame(y=rep(as.factor(c('Yes', 'No')), times=c(90, 10)),
 #'                  x1=rnorm(100),
 #'                  x2=rnorm(100))
-#' newdata <- smote(data, "y", perc_over = 500, k = 5, perc_under = 200)
+#' newdata <- smote(data, "y", perc_over = 500, k = 5)
 #' @export
-smote <- function(data, ycol, perc_over = 500, k = 5, perc_under = 200) {
+smote <- function(data, ycol, perc_over = 500, k = 5) {
   # get the minority class
   mincl <- levels(data[, ycol])[which.min(table(data[, ycol]))]
   minexs <- which(data[, ycol] == mincl)
@@ -65,19 +68,15 @@ smote <- function(data, ycol, perc_over = 500, k = 5, perc_under = 200) {
   }
 
   # generate new cases
-  newexs <- smote_exs(data[minexs, ], ycol, perc_over, k)
+  newexs <- smote_exs(data[minexs, ],
+                      ycol = ycol, perc_over = perc_over, k = k)
   if (col_idx < ncol(data)) {
     newexs <- newexs[, cols]
     data <- data[, cols]
   }
 
-  # get the undersample of the "majority class" examples
   n <- nrow(data)
-  selmaj <- sample((1:n)[-minexs],
-                   as.integer((perc_under / 100) * nrow(newexs)),
-                   replace = TRUE)
-
-  # the final data set (the undersample+the rare cases + the smoted exs)
+  selmaj <- (1:n)[-minexs]
   newdataset <- rbind(data[selmaj, ], data[minexs, ], newexs)
   return(newdataset)
 }
@@ -108,12 +107,6 @@ smote <- function(data, ycol, perc_over = 500, k = 5, perc_under = 200) {
 #' @export
 smote_exs <- function(data, ycol, perc_over, k) {
   t0 <- data.matrix(data[, 1:(ncol(data) - 1)])
-  if (perc_over < 100) { # only a percentage of the t cases will be smote
-    nt <- nrow(t)
-    idx <- sample(1:nt, as.integer((perc_over / 100) * nt))
-    t0 <- t0[idx, ]
-    perc_over <- 100
-  }
 
   p <- dim(t0)[2]
   nt <- dim(t0)[1]
