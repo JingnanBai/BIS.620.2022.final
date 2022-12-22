@@ -30,9 +30,11 @@ build models for classification, support cross-validation, calculating
 the best threshold automatically, and model evaluation. - Logistic
 Regression - Random Forest - SMOTE sampling for imbalanced problem
 
-Please refer to /doc/BIS620_2022_final.html for an example that show how
-this package could be used for finding possible factors of diabetic
-patients’ readmission and build a predictor to estimate the risk.
+Please refer to [vignette
+document](https://github.com/JingnanBai/BIS.620.2022.final/blob/228fc9c408614d10b08edda345720e57edc16872/doc/BIS620_2022_final.html)
+for an example that show how this package could be used for finding
+possible factors of diabetic patients’ readmission and build a predictor
+to estimate the risk.
 
 ## Installation
 
