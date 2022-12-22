@@ -413,7 +413,7 @@ evaluate the result and give the result table
 
 ```{r}
 # build logistic model
-res_logistic <- build_logistic_regression(diabetic_data_woe,
+res_logistic <- build_logistic_regression(diabetic_data_woe[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
                       is_smote = TRUE, seed = 103221, auto_thre = TRUE)
 ```
@@ -490,7 +490,7 @@ and calculating proper threshold automatically.
 
 ```{r rf, warning=FALSE}
 # build rf model
-res_rf <- build_random_forest(diabetic_data_woe,
+res_rf <- build_random_forest(diabetic_data_woe[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
                       is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
@@ -544,7 +544,7 @@ rebuild the model with data after filtering:
 
 ```{r rf for iv}
 # build rf model
-res_rf_iv <- build_random_forest(diabetic_data_iv,
+res_rf_iv <- build_random_forest(diabetic_data_iv[1:1000, ],
                       ycol = "readmitted", is_kfold = TRUE, cv_num = 10,
                       is_smote = TRUE, seed = 103221,
                       ntree = 100, maxnodes = 50, mtry = 4)
